@@ -1,4 +1,5 @@
-# ![](https://i.imgur.com/c4FeZHz.png)
+![](https://i.imgur.com/c4FeZHz.png)
+
 ## CloudflareSolver
 
 Cloudflare JavaScript & ReCaptchaV2 challenge solving library (aka. *Under Attack Mode* bypass).
