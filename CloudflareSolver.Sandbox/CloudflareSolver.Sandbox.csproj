@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <RootNamespace>Cloudflare.Sandbox</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CloudflareSolver\CloudflareSolver.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="2Captcha">
+      <HintPath>..\Libs\2Captcha.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
