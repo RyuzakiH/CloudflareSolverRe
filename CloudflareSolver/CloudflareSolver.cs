@@ -1,7 +1,9 @@
 ﻿using _2Captcha;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -14,6 +16,12 @@ namespace Cloudflare
     public class CloudflareSolver
     {
         private readonly TwoCaptcha _twoCaptcha;
+        private readonly HashSet<int> _statusCodeWhitelist = new HashSet<int>
+        {
+            200,
+            301, 307, 308,
+            404, 410,
+        };
         
         public CloudflareSolver(string _2CaptchaKey = null)
         {
@@ -224,10 +232,20 @@ namespace Cloudflare
                 };
             }
 
-            return new CloudflareDetectResult
+            if (response.IsSuccessStatusCode || _statusCodeWhitelist.Contains((int) response.StatusCode))
             {
-                Protection = CloudflareProtection.NoProtection,
-            };
+                return new CloudflareDetectResult
+                {
+                    Protection = CloudflareProtection.NoProtection,
+                };
+            }
+            else
+            {
+                return new CloudflareDetectResult
+                {
+                    Protection = CloudflareProtection.Unknown,
+                };
+            }
         }
 
         private async Task<(bool, string)> SolveJs(HttpClient httpClient, Uri targetUri, string html)
