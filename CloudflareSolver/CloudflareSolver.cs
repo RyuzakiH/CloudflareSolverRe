@@ -1,4 +1,5 @@
-﻿using System;
+﻿using _2Captcha;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -7,17 +8,13 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using _2Captcha;
 
 namespace Cloudflare
 {
     public class CloudflareSolver
     {
         private readonly TwoCaptcha _twoCaptcha;
-
-        public delegate void CloudflareSolveStatusHandler(CloudflareSolveStatus status, string message = null);
-        public event CloudflareSolveStatusHandler OnCloudflareSolveStatus;
-
+        
         public CloudflareSolver(string _2CaptchaKey = null)
         {
             if (!string.IsNullOrEmpty(_2CaptchaKey))
@@ -110,7 +107,70 @@ namespace Cloudflare
             return solveScriptStringBuilder.ToString();
         }
 
-        public async Task<bool> Solve(HttpClient httpClient, HttpClientHandler httpClientHandler, Uri targetUri)
+        public async Task<CloudflareSolveResult> Solve(HttpClient httpClient, HttpClientHandler httpClientHandler, Uri targetUri, CloudflareDetectResult detectResult = null)
+        {
+            if (detectResult == null)
+                detectResult = await Detect(httpClient, httpClientHandler, targetUri);
+
+            switch (detectResult.Protection)
+            {
+                case CloudflareProtection.NoProtection:
+                    return new CloudflareSolveResult
+                    {
+                        Success = true,
+                        FailReason = "No protection detected",
+                        DetectResult = detectResult,
+                    };
+                case CloudflareProtection.JavaScript:
+                {
+                    var solve = await SolveJs(httpClient, targetUri, detectResult.Html);
+                    return new CloudflareSolveResult
+                    {
+                        Success = solve.Item1,
+                        FailReason = solve.Item2,
+                        DetectResult = detectResult,
+                    };
+                }
+                case CloudflareProtection.Captcha:
+                {
+                    if (!Is2CaptchaEnabled())
+                    {
+                        return new CloudflareSolveResult
+                        {
+                            Success = false,
+                            FailReason = "Missing 2Captcha API key to solve the captcha",
+                            DetectResult = detectResult,
+                        };
+                    }
+
+                    var solve = await SolveCaptcha(httpClient, targetUri, detectResult.Html);
+                    return new CloudflareSolveResult
+                    {
+                        Success = solve.Item1,
+                        FailReason = solve.Item2,
+                        DetectResult = detectResult,
+                    };
+                }
+                case CloudflareProtection.Banned:
+                    return new CloudflareSolveResult
+                    {
+                        Success = false,
+                        FailReason = "This IP address is banned on the website",
+                        DetectResult = detectResult,
+                    };
+                case CloudflareProtection.Unknown:
+                    return new CloudflareSolveResult
+                    {
+                        Success = false,
+                        FailReason = "Unknown protection detected",
+                        DetectResult = detectResult,
+                    };
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        public async Task<CloudflareDetectResult> Detect(HttpClient httpClient, HttpClientHandler httpClientHandler, Uri targetUri)
         {
             PrepareHttpHandler(httpClientHandler);
             PrepareHttpHeaders(httpClient.DefaultRequestHeaders, targetUri);
@@ -122,65 +182,66 @@ namespace Cloudflare
                 var html = await response.Content.ReadAsStringAsync();
                 if (html.Contains("<title>Just a moment...</title>"))
                 {
-                    OnCloudflareSolveStatus?.Invoke(CloudflareSolveStatus.SolvingJavaScript);
-                    if (await SolveJs(httpClient, targetUri, html))
+                    return new CloudflareDetectResult
                     {
-                        OnCloudflareSolveStatus?.Invoke(CloudflareSolveStatus.Success);
-                        return true;
-                    }
-                    else
-                        return false;
+                        Protection = CloudflareProtection.JavaScript,
+                        Html = html,
+                    };
                 }
 
-                OnCloudflareSolveStatus?.Invoke(CloudflareSolveStatus.ProtectionNotRecognized, "Cloudflare title tag not found");
-                return false;
+                return new CloudflareDetectResult
+                {
+                    Protection = CloudflareProtection.Unknown,
+                    Html = html,
+                };
             }
 
-            else if (response.StatusCode == HttpStatusCode.Forbidden)
+            if (response.StatusCode == HttpStatusCode.Forbidden)
             {
                 var html = await response.Content.ReadAsStringAsync();
-                if (html.Contains("<title>Attention Required! | Cloudflare</title>"))
+                if (html.Contains("<title>Attention Required! |"))
                 {
-                    if (Is2CaptchaEnabled())
+                    return new CloudflareDetectResult
                     {
-                        OnCloudflareSolveStatus?.Invoke(CloudflareSolveStatus.SolvingCaptcha);
-                        if (await SolveCaptcha(httpClient, targetUri, html))
-                        {
-                            OnCloudflareSolveStatus?.Invoke(CloudflareSolveStatus.Success);
-                            return true;
-                        }
-                        else
-                            return false;
-                    }
-                    else
-                    {
-                        OnCloudflareSolveStatus?.Invoke(CloudflareSolveStatus.Fail, "Captcha resolving service is not enabled");
-                        return false;
-                    }
+                        Protection = CloudflareProtection.Captcha,
+                        Html = html,
+                    };
                 }
 
-                OnCloudflareSolveStatus?.Invoke(CloudflareSolveStatus.ProtectionNotRecognized, "Cloudflare title tag not found");
-                return false;
+                if (html.Contains("<title>Access denied |"))
+                {
+                    return new CloudflareDetectResult
+                    {
+                        Protection = CloudflareProtection.Banned,
+                        Html = html,
+                    };
+                }
+
+                return new CloudflareDetectResult
+                {
+                    Protection = CloudflareProtection.Unknown,
+                    Html = html,
+                };
             }
 
-            OnCloudflareSolveStatus?.Invoke(CloudflareSolveStatus.ProtectionNotRecognized, $"Invalid server status: {response.StatusCode}");
-            return response.IsSuccessStatusCode;
+            return new CloudflareDetectResult
+            {
+                Protection = CloudflareProtection.NoProtection,
+            };
         }
 
-        private async Task<bool> SolveJs(HttpClient httpClient, Uri targetUri, string html)
+        private async Task<(bool, string)> SolveJs(HttpClient httpClient, Uri targetUri, string html)
         {
             var formMatch = CloudflareRegex.JsFormRegex.Match(html);
             if (!formMatch.Success)
             {
-                OnCloudflareSolveStatus?.Invoke(CloudflareSolveStatus.Fail, "Cloudflare JS form not found");
-                return false;
+                return (false, "Cloudflare (JS): form tag not found");
             }
 
             var scriptMatch = CloudflareRegex.ScriptRegex.Match(html);
             if (!scriptMatch.Success)
             {
-                OnCloudflareSolveStatus?.Invoke(CloudflareSolveStatus.Fail, "Cloudflare JS script tag not found");
-                return false;
+                return (false, "Cloudflare (JS): script tag not found");
             }
 
             var script = scriptMatch.Groups["script"].Value;
@@ -188,15 +249,13 @@ namespace Cloudflare
             var defineMatch = CloudflareRegex.JsDefineRegex.Match(script);
             if (!defineMatch.Success)
             {
-                OnCloudflareSolveStatus?.Invoke(CloudflareSolveStatus.Fail, "Cloudflare JS define variable not found");
-                return false;
+                return (false, "Cloudflare (JS): define variable not found");
             }
             
             var calcMatches = CloudflareRegex.JsCalcRegex.Matches(script);
             if (calcMatches.Count == 0)
             {
-                OnCloudflareSolveStatus?.Invoke(CloudflareSolveStatus.Fail, "Cloudflare JS calc not found");
-                return false;
+                return (false, "Cloudflare (JS): challenge not found");
             }
 
             var solveJsScript = PrepareJsScript(targetUri, defineMatch, calcMatches);
@@ -212,32 +271,30 @@ namespace Cloudflare
             return await SubmitJsSolution(httpClient, action, s, jschl_vc, pass, jschl_answer);
         }
 
-        private async Task<bool> SubmitJsSolution(HttpClient httpClient, string action, string s, string jschl_vc, string pass, string jschl_answer)
+        private async Task<(bool, string)> SubmitJsSolution(HttpClient httpClient, string action, string s, string jschl_vc, string pass, string jschl_answer)
         {
             var query = $"jschl_vc={Uri.EscapeDataString(jschl_vc)}&pass={Uri.EscapeDataString(pass)}&jschl_answer={Uri.EscapeDataString(jschl_answer)}";
 
             // query order is very important, 's' must go first if exists
             if (s != null)
                 query = $"s={Uri.EscapeDataString(s)}&{query}";
-
-            OnCloudflareSolveStatus?.Invoke(CloudflareSolveStatus.SubmittingResult, query);
+            
             var response = await httpClient.GetAsync($"{action}?{query}");
             if (response.StatusCode != HttpStatusCode.Found)
             {
-                OnCloudflareSolveStatus?.Invoke(CloudflareSolveStatus.Fail, $"Cloudflare invalid JS solve server status: {response.StatusCode}");
-                return false;
+                return (false, "Cloudflare (JS): invalid submit response");
             }
             
-            return response.Headers.Contains("Set-Cookie");
+            var success = response.Headers.Contains("Set-Cookie");
+            return (success, success ? null : "Cloudflare (JS): response cookie not found");
         }
 
-        private async Task<bool> SolveCaptcha(HttpClient httpClient, Uri targetUri, string html)
+        private async Task<(bool, string)> SolveCaptcha(HttpClient httpClient, Uri targetUri, string html)
         {
             var formMatch = CloudflareRegex.CaptchaFormRegex.Match(html);
             if (!formMatch.Success)
             {
-                OnCloudflareSolveStatus?.Invoke(CloudflareSolveStatus.Fail, "Cloudflare captcha form not found");
-                return false;
+                return (false, "Cloudflare (Captcha): form tag not found");
             }
             
             var action = $"{targetUri.Scheme}://{targetUri.Host}{formMatch.Groups["action"]}";
@@ -246,26 +303,24 @@ namespace Cloudflare
             var captchaResult = await _twoCaptcha.SolveReCaptchaV2(siteKey, targetUri.AbsoluteUri);
             if (!captchaResult.Success)
             {
-                OnCloudflareSolveStatus?.Invoke(CloudflareSolveStatus.Fail, $"Cloudflare captcha solve failed: {captchaResult.Response}");
-                return false;
+                return (false, $"Cloudflare (Captcha): 2Captcha error ({captchaResult.Response})");
             }
 
             return await SubmitCaptchaSolution(httpClient, action, captchaResult.Response);
         }
 
-        private async Task<bool> SubmitCaptchaSolution(HttpClient httpClient, string action, string captchaResponse)
+        private async Task<(bool, string)> SubmitCaptchaSolution(HttpClient httpClient, string action, string captchaResponse)
         {
             var query = $"g-recaptcha-response={Uri.EscapeDataString(captchaResponse)}";
-
-            OnCloudflareSolveStatus?.Invoke(CloudflareSolveStatus.SubmittingResult, query);
+            
             var response = await httpClient.GetAsync($"{action}?{query}");
             if (response.StatusCode != HttpStatusCode.Found)
             {
-                OnCloudflareSolveStatus?.Invoke(CloudflareSolveStatus.Fail, $"Cloudflare invalid captcha solve server status: {response.StatusCode}");
-                return false;
+                return (false, "Cloudflare (Captcha): invalid submit response");
             }
             
-            return response.Headers.Contains("Set-Cookie");
+            var success = response.Headers.Contains("Set-Cookie");
+            return (success, success ? null : "Cloudflare (Captcha): response cookie not found");
         }
 
     }

@@ -20,20 +20,20 @@ Cloudflare JavaScript & ReCaptchaV2 challenge solving library (aka. *Under Attac
 
 ```cs
 // If you don't want to use the ReCaptchaV2 solver - simply remove the parameter
-var cf = new CloudflareSolver("YOUR_2CAPTCHA_KEY");
-
-cf.OnCloudflareSolveStatus += (status, message) =>
-{
-    // all details go here
-    Debug.WriteLine($"{Enum.GetName(typeof(CloudflareSolveStatus), status)} => {message}");
-};
+var cf = new CloudflareSolver( YOUR_2CAPTCHA_KEY );
 
 var httpClientHandler = new HttpClientHandler();
 var httpClient = new HttpClient(httpClientHandler);
 
-var isBypassed = cf.Solve(httpClient, httpClientHandler, new Uri("https://uam.hitmehard.fun/HIT")).Result;
-// true = httpClient is now ready to send requests (successfully bypassed)
-// false = check what went wrong in the OnCloudflareSolveStatus event
+var result = cf.Solve(httpClient, httpClientHandler, new Uri("https://uam.hitmehard.fun/HIT")).Result;
+if (result.Success)
+{
+    Console.WriteLine($"Success! Protection bypassed: {result.DetectResult.Protection}");
+}
+else
+{
+    Console.WriteLine($"Fail :( => Reason: {result.FailReason}");
+}
 ```
 
 ## Donate ❤️
