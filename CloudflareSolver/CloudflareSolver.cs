@@ -232,7 +232,7 @@ namespace Cloudflare
                 };
             }
 
-            if (response.IsSuccessStatusCode || _statusCodeWhitelist.Contains((int) response.StatusCode))
+            if (response.Headers.Contains("CF-RAY") && (response.IsSuccessStatusCode || _statusCodeWhitelist.Contains((int) response.StatusCode)))
             {
                 return new CloudflareDetectResult
                 {
