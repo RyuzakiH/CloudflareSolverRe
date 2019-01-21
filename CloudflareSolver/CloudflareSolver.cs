@@ -81,7 +81,12 @@ namespace Cloudflare
         
         private void PrepareHttpHandler(HttpClientHandler httpClientHandler)
         {
-            httpClientHandler.AllowAutoRedirect = false;
+            try
+            {
+                httpClientHandler.AllowAutoRedirect = false;
+            }
+            catch
+            { }
         }
 
         private void PrepareHttpHeaders(HttpRequestHeaders headers, Uri targetUri)
