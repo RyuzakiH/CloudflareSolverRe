@@ -120,10 +120,10 @@ namespace Cloudflare
             return solveScriptStringBuilder.ToString();
         }
 
-        public async Task<CloudflareSolveResult> Solve(HttpClient httpClient, HttpClientHandler httpClientHandler, Uri targetUri, CloudflareDetectResult detectResult = null)
+        public async Task<CloudflareSolveResult> Solve(HttpClient httpClient, HttpClientHandler httpClientHandler, Uri targetUri, bool validateCloudflare = true, CloudflareDetectResult detectResult = null)
         {
             if (detectResult == null)
-                detectResult = await Detect(httpClient, httpClientHandler, targetUri);
+                detectResult = await Detect(httpClient, httpClientHandler, targetUri, validateCloudflare);
 
             switch (detectResult.Protection)
             {
@@ -183,7 +183,7 @@ namespace Cloudflare
             }
         }
 
-        public async Task<CloudflareDetectResult> Detect(HttpClient httpClient, HttpClientHandler httpClientHandler, Uri targetUri)
+        public async Task<CloudflareDetectResult> Detect(HttpClient httpClient, HttpClientHandler httpClientHandler, Uri targetUri, bool validateCloudflare = true)
         {
             PrepareHttpHandler(httpClientHandler);
             PrepareHttpHeaders(httpClient.DefaultRequestHeaders, targetUri);
@@ -236,21 +236,20 @@ namespace Cloudflare
                     Html = html,
                 };
             }
-
-            if (response.Headers.Contains("CF-RAY") && (response.IsSuccessStatusCode || _statusCodeWhitelist.Contains((int) response.StatusCode)))
+            
+            if ((!validateCloudflare || response.Headers.Contains("CF-RAY")) && 
+                (response.IsSuccessStatusCode || _statusCodeWhitelist.Contains((int) response.StatusCode)))
             {
                 return new CloudflareDetectResult
                 {
                     Protection = CloudflareProtection.NoProtection,
                 };
             }
-            else
+
+            return new CloudflareDetectResult
             {
-                return new CloudflareDetectResult
-                {
-                    Protection = CloudflareProtection.Unknown,
-                };
-            }
+                Protection = CloudflareProtection.Unknown,
+            };
         }
 
         private async Task<(bool, string)> SolveJs(HttpClient httpClient, Uri targetUri, string html)
