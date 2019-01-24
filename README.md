@@ -2,6 +2,10 @@
 
 ## CloudflareSolver
 
+![](https://img.shields.io/github/release/Zaczero/CloudflareSolver.svg)
+![](https://img.shields.io/nuget/v/CloudflareSolver.svg)
+![](https://img.shields.io/github/license/Zaczero/CloudflareSolver.svg)
+
 Cloudflare JavaScript & ReCaptchaV2 challenge solving library (aka. *Under Attack Mode* bypass).
 
 *Inspired by [CloudFlareUtilities
