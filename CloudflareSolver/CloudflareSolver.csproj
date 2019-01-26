@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="2CaptchaAPI" Version="1.1.0" />
+    <PackageReference Include="2CaptchaAPI" Version="1.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
   </ItemGroup>
 
