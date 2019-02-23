@@ -23,13 +23,16 @@ Cloudflare JavaScript & ReCaptchaV2 challenge solving library (aka. *Under Attac
 ## Getting started
 
 ```cs
-// If you don't want to use the ReCaptchaV2 solver - simply remove the parameter
+////
+// If you do not want to use the ReCaptchaV2 solver simply remove the parameter
+////
 var cf = new CloudflareSolver( YOUR_2CAPTCHA_KEY );
 
 var httpClientHandler = new HttpClientHandler();
 var httpClient = new HttpClient(httpClientHandler);
+var uri = new Uri("https://uam.zaczero.pl/");
 
-var result = cf.Solve(httpClient, httpClientHandler, new Uri("https://uam.hitmehard.fun/HIT")).Result;
+var result = cf.Solve(httpClient, httpClientHandler, uri).Result;
 if (result.Success)
 {
     Console.WriteLine($"Success! Protection bypassed: {result.DetectResult.Protection}");
@@ -37,15 +40,22 @@ if (result.Success)
 else
 {
     Console.WriteLine($"Fail :( => Reason: {result.FailReason}");
+    return;
 }
+
+////
+// Once the protection has been bypassed we can use that httpClient to send the requests as usual
+////
+var response = httpClient.GetAsync(uri).Result;
+var html = response.Content.ReadAsStringAsync().Result;
+
+Console.WriteLine($"Real response: {html}");
 ```
 
 ## Donate ❤️
 
 * BTC: `1NjW3K26ZPZeveW4st4sC249MfyW2w5ZP8`
 * ETH: `0x56b4ED755b7bDD75A954e168EB96f4501F75342d`
-* BCH: `qrx5sz2wzdrjn5an2euvqgf677gu7trxyc9jf3ldkn`
-* XLM: `GAQVHFBRGXHLZHSDLR4GNG7O4TJ2WQUC7IFZYGAET4VDOYYOPNJWSGIB`
 
 ## License
 

@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -237,8 +236,7 @@ namespace Cloudflare
                 };
             }
             
-            if ((!validateCloudflare || response.Headers.Contains("CF-RAY")) && 
-                (response.IsSuccessStatusCode || _statusCodeWhitelist.Contains((int) response.StatusCode)))
+            if ((!validateCloudflare || response.Headers.Contains("CF-RAY")) && (response.IsSuccessStatusCode || _statusCodeWhitelist.Contains((int) response.StatusCode)))
             {
                 return new CloudflareDetectResult
                 {
