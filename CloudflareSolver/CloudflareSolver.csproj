@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard1.3</TargetFramework>
     <RootNamespace>Cloudflare</RootNamespace>
     <PackageIconUrl>https://i.imgur.com/1kOksXx.png</PackageIconUrl>
     <Version>1.1.1</Version>
@@ -23,7 +23,9 @@
 
   <ItemGroup>
     <PackageReference Include="2CaptchaAPI" Version="1.3.1" />
+    <PackageReference Include="Jint" Version="2.11.58" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
   </ItemGroup>
 
 </Project>

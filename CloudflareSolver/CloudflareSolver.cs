@@ -1,8 +1,7 @@
 ﻿using _2Captcha;
+using Jint;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -21,63 +20,23 @@ namespace Cloudflare
             301, 307, 308,
             404, 410,
         };
-        
+
         public CloudflareSolver(string _2CaptchaKey = null)
         {
             if (!string.IsNullOrEmpty(_2CaptchaKey))
                 _twoCaptcha = new TwoCaptcha(_2CaptchaKey);
-
-            if (!IsNodeInstalled())
-                throw new CloudflareException("Node.js doesn't seem to be installed");
         }
 
-        private bool IsNodeInstalled()
+        private string ExecuteJavascript(string script)
         {
-            var psi = new ProcessStartInfo
-            {
-                Arguments = "-v",
-                CreateNoWindow = true,
-                FileName = "node",
-                UseShellExecute = false,
-            };
-
-            try
-            {
-                Process.Start(psi);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-        
-        private async Task<string> RunNodeScript(string script)
-        {
-            var tmpFileName = Path.GetTempFileName() + ".js";
-            File.WriteAllText(tmpFileName, script);
-
-            var psi = new ProcessStartInfo
-            {
-                Arguments = tmpFileName,
-                CreateNoWindow = true,
-                FileName = "node",
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-            };
-
-            var process = Process.Start(psi);
-            var output = await process.StandardOutput.ReadToEndAsync();
-            File.Delete(tmpFileName);
-
-            return output.Trim();
+            return new Engine().Execute(script).GetCompletionValue().ToObject().ToString();
         }
 
         private bool Is2CaptchaEnabled()
         {
             return _twoCaptcha != null;
         }
-        
+
         private void PrepareHttpHandler(HttpClientHandler httpClientHandler)
         {
             try
@@ -93,7 +52,7 @@ namespace Cloudflare
             if (headers.Accept.Count == 0)
                 headers.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8");
 
-            if (headers.AcceptLanguage.Count == 0) 
+            if (headers.AcceptLanguage.Count == 0)
                 headers.AcceptLanguage.ParseAdd("en,en-US;q=0.9");
 
             if (headers.Host == null)
@@ -111,11 +70,10 @@ namespace Cloudflare
             var solveScriptStringBuilder = new StringBuilder(defineMatch.Value);
 
             foreach (Match calcMatch in calcMatches)
-            {
                 solveScriptStringBuilder.Append(calcMatch.Value);
-            }
-            solveScriptStringBuilder.Append($"console.log(+{defineMatch.Groups["className"].Value}.{defineMatch.Groups["propName"].Value}.toFixed(10) + {targetUri.Host.Length})");
-            
+
+            solveScriptStringBuilder.Append($"+{defineMatch.Groups["className"].Value}.{defineMatch.Groups["propName"].Value}.toFixed(10) + {targetUri.Host.Length}");
+
             return solveScriptStringBuilder.ToString();
         }
 
@@ -134,35 +92,35 @@ namespace Cloudflare
                         DetectResult = detectResult,
                     };
                 case CloudflareProtection.JavaScript:
-                {
-                    var solve = await SolveJs(httpClient, targetUri, detectResult.Html);
-                    return new CloudflareSolveResult
                     {
-                        Success = solve.Item1,
-                        FailReason = solve.Item2,
-                        DetectResult = detectResult,
-                    };
-                }
-                case CloudflareProtection.Captcha:
-                {
-                    if (!Is2CaptchaEnabled())
-                    {
+                        var solve = await SolveJs(httpClient, targetUri, detectResult.Html);
                         return new CloudflareSolveResult
                         {
-                            Success = false,
-                            FailReason = "Missing 2Captcha API key to solve the captcha",
+                            Success = solve.Item1,
+                            FailReason = solve.Item2,
                             DetectResult = detectResult,
                         };
                     }
-
-                    var solve = await SolveCaptcha(httpClient, targetUri, detectResult.Html);
-                    return new CloudflareSolveResult
+                case CloudflareProtection.Captcha:
                     {
-                        Success = solve.Item1,
-                        FailReason = solve.Item2,
-                        DetectResult = detectResult,
-                    };
-                }
+                        if (!Is2CaptchaEnabled())
+                        {
+                            return new CloudflareSolveResult
+                            {
+                                Success = false,
+                                FailReason = "Missing 2Captcha API key to solve the captcha",
+                                DetectResult = detectResult,
+                            };
+                        }
+
+                        var solve = await SolveCaptcha(httpClient, targetUri, detectResult.Html);
+                        return new CloudflareSolveResult
+                        {
+                            Success = solve.Item1,
+                            FailReason = solve.Item2,
+                            DetectResult = detectResult,
+                        };
+                    }
                 case CloudflareProtection.Banned:
                     return new CloudflareSolveResult
                     {
@@ -235,8 +193,8 @@ namespace Cloudflare
                     Html = html,
                 };
             }
-            
-            if ((!validateCloudflare || response.Headers.Contains("CF-RAY")) && (response.IsSuccessStatusCode || _statusCodeWhitelist.Contains((int) response.StatusCode)))
+
+            if ((!validateCloudflare || response.Headers.Contains("CF-RAY")) && (response.IsSuccessStatusCode || _statusCodeWhitelist.Contains((int)response.StatusCode)))
             {
                 return new CloudflareDetectResult
                 {
@@ -271,7 +229,7 @@ namespace Cloudflare
             {
                 return (false, "Cloudflare (JS): define variable not found");
             }
-            
+
             var calcMatches = CloudflareRegex.JsCalcRegex.Matches(script);
             if (calcMatches.Count == 0)
             {
@@ -284,10 +242,10 @@ namespace Cloudflare
             var s = formMatch.Groups["s"].Success ? formMatch.Groups["s"].Value : null;
             var jschl_vc = formMatch.Groups["jschl_vc"].Value;
             var pass = formMatch.Groups["pass"].Value;
-            var jschl_answer = await RunNodeScript(solveJsScript);
+            var jschl_answer = ExecuteJavascript(solveJsScript);
 
             await Task.Delay(4000 + 100);
-            
+
             return await SubmitJsSolution(httpClient, action, s, jschl_vc, pass, jschl_answer);
         }
 
@@ -298,13 +256,13 @@ namespace Cloudflare
             // query order is very important, 's' must go first if exists
             if (s != null)
                 query = $"s={Uri.EscapeDataString(s)}&{query}";
-            
+
             var response = await httpClient.GetAsync($"{action}?{query}");
             if (response.StatusCode != HttpStatusCode.Found)
             {
                 return (false, "Cloudflare (JS): invalid submit response");
             }
-            
+
             var success = response.Headers.Contains("Set-Cookie");
             return (success, success ? null : "Cloudflare (JS): response cookie not found");
         }
@@ -316,7 +274,7 @@ namespace Cloudflare
             {
                 return (false, "Cloudflare (Captcha): form tag not found");
             }
-            
+
             var action = $"{targetUri.Scheme}://{targetUri.Host}{formMatch.Groups["action"]}";
             var siteKey = formMatch.Groups["siteKey"].Value;
 
@@ -332,13 +290,13 @@ namespace Cloudflare
         private async Task<(bool, string)> SubmitCaptchaSolution(HttpClient httpClient, string action, string captchaResponse)
         {
             var query = $"g-recaptcha-response={Uri.EscapeDataString(captchaResponse)}";
-            
+
             var response = await httpClient.GetAsync($"{action}?{query}");
             if (response.StatusCode != HttpStatusCode.Found)
             {
                 return (false, "Cloudflare (Captcha): invalid submit response");
             }
-            
+
             var success = response.Headers.Contains("Set-Cookie");
             return (success, success ? null : "Cloudflare (Captcha): response cookie not found");
         }
