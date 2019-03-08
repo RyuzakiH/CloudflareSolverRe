@@ -13,7 +13,7 @@ Cloudflare JavaScript & ReCaptchaV2 challenge solving library (aka. *Under Attac
 
 ## Requirements
 
-* To use the JavaScript solver you must install [Node.js](https://nodejs.org/)
+* This library is compiled with .NET Standard 1.3. Check full implementation support [here](https://docs.microsoft.com/en-us/dotnet/standard/net-standard)
 * To use the ReCaptchaV2 solver you must create an account on [2Captcha](http://2captcha.com/?from=6591885)
 
 ## Download
@@ -27,10 +27,10 @@ Cloudflare JavaScript & ReCaptchaV2 challenge solving library (aka. *Under Attac
 // If you do not want to use the ReCaptchaV2 solver simply remove the parameter
 ////
 var cf = new CloudflareSolver( YOUR_2CAPTCHA_KEY );
+var uri = new Uri("https://uam.zaczero.pl/");
 
 var httpClientHandler = new HttpClientHandler();
 var httpClient = new HttpClient(httpClientHandler);
-var uri = new Uri("https://uam.zaczero.pl/");
 
 var result = cf.Solve(httpClient, httpClientHandler, uri).Result;
 if (result.Success)
@@ -57,7 +57,7 @@ Console.WriteLine($"Real response: {html}");
 * BTC: `1NjW3K26ZPZeveW4st4sC249MfyW2w5ZP8`
 * ETH: `0x56b4ED755b7bDD75A954e168EB96f4501F75342d`
 
-## License
+## CloudflareSolver License
 
 MIT License
 
@@ -80,3 +80,18 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+## Jint License
+
+BSD 2-Clause License
+
+Copyright (c) 2013, Sebastien Ros
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
