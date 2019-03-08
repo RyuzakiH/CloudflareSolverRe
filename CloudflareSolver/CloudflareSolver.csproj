@@ -1,18 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFrameworks>netstandard1.3;netstandard2.0</TargetFrameworks>
     <RootNamespace>Cloudflare</RootNamespace>
     <PackageIconUrl>https://i.imgur.com/1kOksXx.png</PackageIconUrl>
-    <Version>1.1.1</Version>
+    <Version>1.2.0</Version>
     <Authors>Zaczero (Kamil Monicz)</Authors>
     <Company>Zaczero (Kamil Monicz)</Company>
     <Description>Cloudflare JavaScript &amp; ReCaptchaV2 challenge solving library (aka. *Under Attack Mode* bypass).</Description>
     <Copyright>Copyright (c) Zaczero (Kamil Monicz) 2019</Copyright>
     <PackageLicenseUrl>https://github.com/Zaczero/CloudflareSolver/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/Zaczero/CloudflareSolver</PackageProjectUrl>
-    <AssemblyVersion>1.1.1.0</AssemblyVersion>
-    <FileVersion>1.1.1.0</FileVersion>
+    <AssemblyVersion>1.2.0.0</AssemblyVersion>
+    <FileVersion>1.2.0.0</FileVersion>
     <PackageTags>cloudflare, under, attack, mode, uam, solver, solving, library, cloudflaresolver, resolver, recaptchav2, recaptcha, captcha, nodejs, javascript, challenge, 2captcha, utilities</PackageTags>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
   </PropertyGroup>
@@ -25,7 +25,6 @@
     <PackageReference Include="2CaptchaAPI" Version="1.3.1" />
     <PackageReference Include="Jint" Version="2.11.58" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
-    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
   </ItemGroup>
 
 </Project>
