@@ -27,14 +27,18 @@ namespace Cloudflare
                 _twoCaptcha = new TwoCaptcha(_2CaptchaKey);
         }
 
-        private string ExecuteJavascript(string script)
-        {
-            return new Engine().Execute(script).GetCompletionValue().ToObject().ToString();
-        }
-
         private bool Is2CaptchaEnabled()
         {
             return _twoCaptcha != null;
+        }
+
+        private string ExecuteJavaScript(string script)
+        {
+            return new Engine()
+                .Execute(script)
+                .GetCompletionValue()
+                .ToObject()
+                .ToString();
         }
 
         private void PrepareHttpHandler(HttpClientHandler httpClientHandler)
@@ -242,7 +246,7 @@ namespace Cloudflare
             var s = formMatch.Groups["s"].Success ? formMatch.Groups["s"].Value : null;
             var jschl_vc = formMatch.Groups["jschl_vc"].Value;
             var pass = formMatch.Groups["pass"].Value;
-            var jschl_answer = ExecuteJavascript(solveJsScript);
+            var jschl_answer = ExecuteJavaScript(solveJsScript);
 
             await Task.Delay(4000 + 100);
 
