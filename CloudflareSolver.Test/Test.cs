@@ -15,7 +15,7 @@ namespace Cloudflare.Test
             var httpClientHandler = new HttpClientHandler();
             var httpClient = new HttpClient(httpClientHandler);
             var uri = new Uri("https://cf.zaczero.pl/");
-            
+
             var result = cf.Solve(httpClient, httpClientHandler, uri).Result;
             Assert.IsTrue(result.Success);
 
@@ -32,7 +32,7 @@ namespace Cloudflare.Test
             var httpClientHandler = new HttpClientHandler();
             var httpClient = new HttpClient(httpClientHandler);
             var uri = new Uri("https://uam.zaczero.pl/");
-            
+
             var result = cf.Solve(httpClient, httpClientHandler, uri).Result;
             Assert.IsTrue(result.Success);
 

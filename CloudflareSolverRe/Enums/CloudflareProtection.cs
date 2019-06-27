@@ -1,4 +1,4 @@
-﻿namespace Cloudflare
+﻿namespace Cloudflare.Enums
 {
     public enum CloudflareProtection
     {

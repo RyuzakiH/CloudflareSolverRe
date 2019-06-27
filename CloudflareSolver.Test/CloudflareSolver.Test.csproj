@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CloudflareSolver\CloudflareSolver.csproj" />
+    <ProjectReference Include="..\CloudflareSolverRe\CloudflareSolverRe.csproj" />
   </ItemGroup>
 
 </Project>
