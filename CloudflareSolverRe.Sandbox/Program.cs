@@ -1,6 +1,8 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using Cloudflare.CaptchaProviders;
 
 namespace Cloudflare.Sandbox
@@ -13,16 +15,27 @@ namespace Cloudflare.Sandbox
              * var cf = new CloudflareSolver(new TwoCaptchaProvider("YOUR_API_KEY"));
              * var cf = new CloudflareSolver(new AntiCaptchaProvider("YOUR_API_KEY"));
              */
-            var cf = new CloudflareSolver();
+            //var socketsHttpHandler = new SocketsHttpHandler();
 
+            
+
+            var cf = new CloudflareSolver();
+            //CookieContainer cookies = new CookieContainer();
             var httpClientHandler = new HttpClientHandler
             {
+                //CookieContainer = cookies,
                 AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
             };
             var httpClient = new HttpClient(httpClientHandler);
-            var uri = new Uri("https://uam.zaczero.pl/");
 
-            var result = cf.Solve(httpClient, httpClientHandler, uri).Result;
+            var uri = new Uri("http://www.japscan.to");
+            //var uri = new Uri("http://www.spacetorrent.cloud/");
+            //var uri = new Uri("http://hdmovie8.com");
+            //var uri = new Uri("https://github.com");
+            //var uri = new Uri("https://www.mkvcage.ws/");
+            //var uri = new Uri("http://codepen.io/");
+
+            var result = cf.Solve(httpClient, httpClientHandler, uri, 1).Result;
             if (result.Success)
             {
                 Console.WriteLine($"[Success] Protection bypassed: {result.DetectResult.Protection}");
@@ -32,6 +45,8 @@ namespace Cloudflare.Sandbox
                 Console.WriteLine($"[Failed] Details: {result.FailReason}");
                 return;
             }
+
+            //uri = new Uri("https://hdmovie8.com/movies/young-sister-3/");
 
             // Once the protection has been bypassed we can use that httpClient to send the requests as usual
             var response = httpClient.GetAsync(uri).Result;

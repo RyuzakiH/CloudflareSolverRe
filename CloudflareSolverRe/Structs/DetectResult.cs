@@ -1,4 +1,6 @@
-﻿namespace Cloudflare.Structs
+﻿using Cloudflare.Enums;
+
+namespace Cloudflare.Structs
 {
     public struct DetectResult
     {
