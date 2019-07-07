@@ -33,6 +33,15 @@ namespace Cloudflare.Structs
             Answer = answer;
         }
 
+        public JsChallengeSolution(string clearancePage, JsForm form, double answer)
+        {
+            ClearancePage = clearancePage;
+            S = form.S;
+            VerificationCode = form.VerificationCode;
+            Pass = form.Pass;
+            Answer = answer;
+        }
+
 
         public static bool operator ==(JsChallengeSolution solutionA, JsChallengeSolution solutionB)
         {

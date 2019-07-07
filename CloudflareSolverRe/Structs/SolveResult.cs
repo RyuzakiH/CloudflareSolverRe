@@ -8,6 +8,7 @@ namespace Cloudflare.Structs
         public bool Success;
         public string FailReason;
         public DetectResult DetectResult;
+        internal DetectResult? NewDetectResult;
         internal HttpResponseMessage Response;
 
         public SolveResult(bool success, string layer, string failReason, DetectResult detectResult, [Optional]HttpResponseMessage response)
@@ -17,6 +18,8 @@ namespace Cloudflare.Structs
             FailReason = !string.IsNullOrEmpty(failReason) ? $"Cloudflare [{layer}]: {failReason}" : null;
 
             DetectResult = detectResult;
+
+            NewDetectResult = null;
 
             Response = response;
         }
@@ -28,6 +31,8 @@ namespace Cloudflare.Structs
             FailReason = failReason;
 
             DetectResult = detectResult;
+
+            NewDetectResult = null;
 
             Response = response;
         }

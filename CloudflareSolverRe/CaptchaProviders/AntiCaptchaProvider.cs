@@ -1,5 +1,4 @@
 ﻿using _AntiCaptcha;
-using Cloudflare.Interfaces;
 using Cloudflare.Structs;
 using System.Threading.Tasks;
 

@@ -1,55 +1,34 @@
-﻿using Cloudflare.Interfaces;
+﻿using Cloudflare.CaptchaProviders;
 using Cloudflare.Structs;
 using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Cloudflare.Solvers
 {
-    public class CaptchaChallengeSolver
+    public class CaptchaChallengeSolver : ChallengeSolver
     {
-        private const string LayerCaptcha = "Captcha";
-
-
-        public HttpClient HttpClient { get; }
-        public HttpClientHandler HttpClientHandler { get; }
-        public DetectResult DetectResult { get; private set; }
-        public Uri SiteUrl { get; }
-
-
         private readonly ICaptchaProvider captchaProvider;
 
-
-        public CaptchaChallengeSolver(HttpClient client, HttpClientHandler handler, Uri siteUrl, DetectResult detectResult, ICaptchaProvider captchaProvider)
+        public CaptchaChallengeSolver(HttpClient client, HttpClientHandler handler, Uri siteUrl, DetectResult detectResult, ICaptchaProvider captchaProvider, [Optional]int maxRetries)
+            : base(client, handler, siteUrl, detectResult, maxRetries)
         {
-            HttpClient = client;
-            HttpClientHandler = handler;
-            SiteUrl = siteUrl;
-            DetectResult = detectResult;
             this.captchaProvider = captchaProvider;
         }
 
-        public CaptchaChallengeSolver(HttpClientHandler handler, Uri siteUrl, DetectResult detectResult, ICaptchaProvider captchaProvider)
+        public CaptchaChallengeSolver(HttpClientHandler handler, Uri siteUrl, DetectResult detectResult, ICaptchaProvider captchaProvider, [Optional]int maxRetries)
+            : base(handler, siteUrl, detectResult, maxRetries)
         {
-            HttpClient = new HttpClient(handler);
-            HttpClientHandler = handler;
-            DetectResult = detectResult;
             this.captchaProvider = captchaProvider;
         }
 
 
+        private bool IsCaptchaSolvingEnabled() => captchaProvider != null;
 
-        private bool IsCaptchaSolvingEnabled()
-        {
-            return captchaProvider != null;
-        }
-        
 
-        public async Task<SolveResult> Solve()
+        public new async Task<SolveResult> Solve()
         {
             if (!IsCaptchaSolvingEnabled())
             {
@@ -61,7 +40,7 @@ namespace Cloudflare.Solvers
                 };
             }
 
-            var solve = await SolveCaptcha(HttpClient, SiteUrl, DetectResult.Html);
+            var solve = await SolveChallenge(DetectResult.Html);
             return new SolveResult
             {
                 Success = solve.Success,
@@ -70,36 +49,49 @@ namespace Cloudflare.Solvers
             };
         }
 
-        private async Task<SolveResult> SolveCaptcha(HttpClient httpClient, Uri targetUri, string html)
+        private async Task<SolveResult> SolveChallenge(string html)
         {
-            var formMatch = CloudflareRegex.CaptchaFormRegex.Match(html);
-            if (!formMatch.Success)
-                return new SolveResult(false, LayerCaptcha, "form tag not found", DetectResult);
+            var challenge = ExtractCaptchaChallenge(html);
 
-            var action = $"{targetUri.Scheme}://{targetUri.Host}{formMatch.Groups["action"]}";
-            var s = formMatch.Groups["s"].Value;
-            var siteKey = formMatch.Groups["siteKey"].Value;
+            var clearancePage = $"{SiteUrl.Scheme}://{SiteUrl.Host}{challenge.Action}";
 
-            var captchaResult = await captchaProvider.SolveCaptcha(siteKey, targetUri.AbsoluteUri);
-            if (!captchaResult.Success)
-                return new SolveResult(false, LayerCaptcha, $"captcha provider error ({captchaResult.Response})", DetectResult);
+            var result = await captchaProvider.SolveCaptcha(challenge.SiteKey, SiteUrl.AbsoluteUri);
+            if (!result.Success)
+                return new SolveResult(false, LayerCaptcha, $"captcha provider error ({result.Response})", DetectResult);
 
-            return await SubmitCaptchaSolution(httpClient, action, s, captchaResult.Response);
+            var solution = new CaptchaChallengeSolution(clearancePage, challenge.S, result.Response);
+
+            return await SubmitCaptchaSolution(solution);
         }
 
-        private async Task<SolveResult> SubmitCaptchaSolution(HttpClient httpClient, string action, string s, string captchaResponse)
+        private CaptchaChallenge ExtractCaptchaChallenge(string html)
         {
-            var query = $"s={Uri.EscapeDataString(s)}" +
-                        $"&g-recaptcha-response={Uri.EscapeDataString(captchaResponse)}";
+            var formMatch = CloudflareRegex.CaptchaFormRegex.Match(html);
 
-            var response = await httpClient.GetAsync($"{action}?{query}");
-            if (response.StatusCode != HttpStatusCode.Found)
+            return new CaptchaChallenge
             {
-                return new SolveResult(false, LayerCaptcha, "invalid submit response", DetectResult, response);
-            }
+                Action = formMatch.Groups["action"].Value,
+                S = formMatch.Groups["s"].Value,
+                SiteKey = formMatch.Groups["siteKey"].Value
+            };
+        }
 
-            var success = response.Headers.Contains("Set-Cookie");
-            return new SolveResult(success, LayerCaptcha, success ? null : "response cookie not found", DetectResult, response);
+        private async Task<SolveResult> SubmitCaptchaSolution(CaptchaChallengeSolution solution)
+        {
+            PrepareHttpHandler();
+            PrepareHttpHeaders();
+
+            var response = await HttpClient.GetAsync(solution.ClearancePage);
+
+            if (response.StatusCode.Equals(HttpStatusCode.Found))
+            {
+                var success = response.Headers.Contains("Set-Cookie");
+                return new SolveResult(success, LayerCaptcha, success ? null : "response cookie not found", DetectResult, response);
+            }
+            else
+            {
+                return new SolveResult(false, LayerCaptcha, "something wrong happened", DetectResult, response); //"invalid submit response"
+            }
         }
 
     }

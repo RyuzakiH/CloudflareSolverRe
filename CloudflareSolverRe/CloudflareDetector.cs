@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Cloudflare
 {
-    public class Detector
+    public class CloudflareDetector
     {
 
         private static readonly IEnumerable<string> CloudFlareServerNames = new[] { "cloudflare", "cloudflare-nginx" };
@@ -27,22 +27,22 @@ namespace Cloudflare
         public static bool IsCloudflareProtected(HttpResponseMessage response)
         {
             return response.Headers.Server
-                .Any(i => i.Product != null && CloudFlareServerNames.Any(s => string.Compare(s, i.Product.Name, StringComparison.OrdinalIgnoreCase).Equals(0)));
+                .Any(i => i.Product != null
+                    && CloudFlareServerNames.Any(s => string.Compare(s, i.Product.Name, StringComparison.OrdinalIgnoreCase).Equals(0)));
         }
 
-        public static bool IsClearanceRequired(HttpResponseMessage response)
-        {
-            var isServiceUnavailable = response.StatusCode.Equals(HttpStatusCode.ServiceUnavailable);
-            var isCloudflareServer = IsCloudflareProtected(response);
-
-            return isServiceUnavailable && isCloudflareServer;
-        }
+        public static bool IsClearanceRequired(HttpResponseMessage response) =>
+            response.StatusCode.Equals(HttpStatusCode.ServiceUnavailable) && IsCloudflareProtected(response);
 
 
         private static void PrepareHttpHandler(HttpClientHandler httpClientHandler)
         {
-            httpClientHandler.AllowAutoRedirect = false;
-            httpClientHandler.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+            try
+            {
+                httpClientHandler.AllowAutoRedirect = false;
+                httpClientHandler.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+            }
+            catch (Exception) { }
         }
 
         private static void PrepareHttpHeaders(HttpRequestHeaders headers, Uri targetUri)
@@ -59,8 +59,8 @@ namespace Cloudflare
             if (!headers.AcceptLanguage.Any())
                 headers.AddWithoutValidation("Accept-Language", "en-US,en;q=0.5");
 
-            if (!headers.AcceptEncoding.Any())
-                headers.Add("Accept-Encoding", "gzip, deflate");
+            //if (!headers.AcceptEncoding.Any())
+            //    headers.Add("Accept-Encoding", "gzip, deflate");
 
             if (!headers.Connection.Any())
                 headers.Connection.ParseAdd("keep-alive");
@@ -73,46 +73,51 @@ namespace Cloudflare
         }
 
 
-        public static async Task<DetectResult> Detect(HttpClient httpClient, HttpClientHandler httpClientHandler, Uri targetUri)
+        public static async Task<DetectResult> Detect(HttpClient httpClient, HttpClientHandler httpClientHandler, Uri targetUri, bool requireHttps = false)
         {
             PrepareHttpHandler(httpClientHandler);
             PrepareHttpHeaders(httpClient.DefaultRequestHeaders, targetUri);
 
+            if (!requireHttps)
+                targetUri = targetUri.ForceHttp();
+
             var response = await httpClient.GetAsync(targetUri);
-            
-            return await Detect(response);
+
+            var detectResult = await Detect(response);
+
+            if (detectResult.Protection.Equals(CloudflareProtection.Unknown) && !detectResult.SupportsHttp)
+            {
+                targetUri = targetUri.ForceHttps();
+                response = await httpClient.GetAsync(targetUri);
+                detectResult = await Detect(response);
+            }
+
+            return detectResult;
         }
 
         public static async Task<DetectResult> Detect(HttpResponseMessage response)
         {
-            if (response.StatusCode == HttpStatusCode.ServiceUnavailable)
-            {
-                var html = await response.Content.ReadAsStringAsync();
-                if (html.Contains("var s,t,o,p,b,r,e,a,k,i,n,g"))
-                {
-                    return new DetectResult
-                    {
-                        Protection = CloudflareProtection.JavaScript,
-                        Html = html,
-                    };
-                }
+            var html = await response.Content.ReadAsStringAsync();
 
+            if (response.StatusCode.Equals(HttpStatusCode.ServiceUnavailable) && html.Contains("var s,t,o,p,b,r,e,a,k,i,n,g"))
+            {
                 return new DetectResult
                 {
-                    Protection = CloudflareProtection.Unknown,
+                    Protection = CloudflareProtection.JavaScript,
                     Html = html,
+                    SupportsHttp = true
                 };
             }
 
-            if (response.StatusCode == HttpStatusCode.Forbidden)
+            if (response.StatusCode.Equals(HttpStatusCode.Forbidden))
             {
-                var html = await response.Content.ReadAsStringAsync();
                 if (html.Contains("g-recaptcha"))
                 {
                     return new DetectResult
                     {
                         Protection = CloudflareProtection.Captcha,
                         Html = html,
+                        SupportsHttp = true
                     };
                 }
 
@@ -124,11 +129,14 @@ namespace Cloudflare
                         Html = html,
                     };
                 }
+            }
 
+            if (response.StatusCode.Equals(HttpStatusCode.MovedPermanently) && response.Headers.Location != null && response.Headers.Location.Scheme.Equals(Uri.UriSchemeHttps))
+            {
                 return new DetectResult
                 {
                     Protection = CloudflareProtection.Unknown,
-                    Html = html,
+                    SupportsHttp = false
                 };
             }
 
@@ -138,6 +146,7 @@ namespace Cloudflare
                 return new DetectResult
                 {
                     Protection = CloudflareProtection.NoProtection,
+                    SupportsHttp = true
                 };
             }
 

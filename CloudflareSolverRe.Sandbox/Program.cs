@@ -24,18 +24,19 @@ namespace Cloudflare.Sandbox
             var httpClientHandler = new HttpClientHandler
             {
                 //CookieContainer = cookies,
-                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+                //AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
             };
             var httpClient = new HttpClient(httpClientHandler);
 
-            var uri = new Uri("http://www.japscan.to");
-            //var uri = new Uri("http://www.spacetorrent.cloud/");
+            //var uri = new Uri("https://www.japscan.to");
+            //var uri = new Uri("https://www.spacetorrent.cloud/");
             //var uri = new Uri("http://hdmovie8.com");
             //var uri = new Uri("https://github.com");
             //var uri = new Uri("https://www.mkvcage.ws/");
             //var uri = new Uri("http://codepen.io/");
+            var uri = new Uri("https://uam.hitmehard.fun/HIT");
 
-            var result = cf.Solve(httpClient, httpClientHandler, uri, 1).Result;
+            var result = cf.Solve(httpClient, httpClientHandler, uri, 3).Result;
             if (result.Success)
             {
                 Console.WriteLine($"[Success] Protection bypassed: {result.DetectResult.Protection}");

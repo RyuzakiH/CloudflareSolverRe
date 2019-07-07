@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace Cloudflare.Structs
 {
     public class JsChallenge
     {
-
         public string ClassDefinition { get; set; }
         public string ClassName { get; set; }
         public string PropertyName { get; set; }
@@ -21,26 +18,7 @@ namespace Cloudflare.Structs
 
         public bool IsHostLength { get; set; }
         
-
         public int Delay { get; set; }
-
-
         
-
-
-
-
-        
-
-
-
-    }
-
-    public class JsForm
-    {
-        public string Action { get; set; }
-        public string S { get; set; }
-        public string VerificationCode { get; set; }
-        public string Pass { get; set; }
     }
 }
