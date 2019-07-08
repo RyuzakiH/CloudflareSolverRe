@@ -25,7 +25,7 @@ namespace Cloudflare.Extensions
                 headers.Add(name, "en-US");
 
                 var sq = headers.AcceptLanguage.LastOrDefault();
-                var _value = sq.GetType().GetTypeInfo().GetField("_value", BindingFlags.NonPublic | BindingFlags.Instance);
+                var _value = sq.GetType().GetTypeInfo().GetDeclaredField("_value"/*, BindingFlags.NonPublic | BindingFlags.Instance*/);
                 _value.SetValue(sq, value);
             }
             else

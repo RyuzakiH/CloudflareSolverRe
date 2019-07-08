@@ -11,7 +11,7 @@ namespace Cloudflare.Extensions
             var newUri = new UriBuilder(uri);
 
             var hadDefaultPort = newUri.Uri.IsDefaultPort;
-            newUri.Scheme = Uri.UriSchemeHttp;
+            newUri.Scheme = "http";
             newUri.Port = hadDefaultPort ? -1 : newUri.Port;
 
             return newUri.Uri;
@@ -22,7 +22,7 @@ namespace Cloudflare.Extensions
             var newUri = new UriBuilder(uri);
 
             var hadDefaultPort = newUri.Uri.IsDefaultPort;
-            newUri.Scheme = Uri.UriSchemeHttps;
+            newUri.Scheme = "https";
             newUri.Port = hadDefaultPort ? -1 : newUri.Port;
 
             return newUri.Uri;

@@ -15,14 +15,7 @@ namespace Cloudflare
     {
 
         private static readonly IEnumerable<string> CloudFlareServerNames = new[] { "cloudflare", "cloudflare-nginx" };
-
-        private static readonly HashSet<int> _statusCodeWhitelist = new HashSet<int>
-        {
-            200,
-            301, 307, 308,
-            404, 410,
-        };
-
+        
 
         public static bool IsCloudflareProtected(HttpResponseMessage response)
         {
@@ -131,7 +124,7 @@ namespace Cloudflare
                 }
             }
 
-            if (response.StatusCode.Equals(HttpStatusCode.MovedPermanently) && response.Headers.Location != null && response.Headers.Location.Scheme.Equals(Uri.UriSchemeHttps))
+            if (response.StatusCode.Equals(HttpStatusCode.MovedPermanently) && response.Headers.Location != null && response.Headers.Location.Scheme.Equals("https"))
             {
                 return new DetectResult
                 {

@@ -40,9 +40,9 @@ namespace Cloudflare
                 if (!detectResult.HasValue)
                     detectResult = await CloudflareDetector.Detect(httpClient, httpClientHandler, siteUrl, i >= maxRetry);
 
-                if (i >= maxRetry && siteUrl.Scheme.Equals(Uri.UriSchemeHttp))
+                if (i >= maxRetry && siteUrl.Scheme.Equals("http"))
                     siteUrl = siteUrl.ForceHttps();
-                else if (detectResult.Value.SupportsHttp && siteUrl.Scheme.Equals(Uri.UriSchemeHttps))
+                else if (detectResult.Value.SupportsHttp && siteUrl.Scheme.Equals("https"))
                     siteUrl = siteUrl.ForceHttp();
 
                 switch (detectResult.Value.Protection)
