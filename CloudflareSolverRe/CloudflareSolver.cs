@@ -48,45 +48,30 @@ namespace Cloudflare
                 switch (detectResult.Value.Protection)
                 {
                     case CloudflareProtection.NoProtection:
-                        result = new SolveResult
-                        {
-                            Success = true,
-                            FailReason = "No protection detected",
-                            DetectResult = detectResult.Value,
-                        };
+                        result = SolveResult.NoProtection;
+                        result.DetectResult = detectResult.Value;
                         break;
                     case CloudflareProtection.JavaScript:
 
                         result = await new JsChallengeSolver(httpClient, httpClientHandler, siteUrl, detectResult.Value).Solve();
 
                         if (!result.Success && result.NewDetectResult.HasValue && result.NewDetectResult.Value.Protection.Equals(CloudflareProtection.Captcha))
-                        {
                             newDetectResult = result.NewDetectResult;
-                            //i--;
-                        }
+
                         break;
                     case CloudflareProtection.Captcha:
-                        //if (i != (maxRetry - 1))
-                        if (i < maxRetry)
-                            break;
 
-                        result = await new CaptchaChallengeSolver(httpClient, httpClientHandler, siteUrl, detectResult.Value, captchaProvider).Solve();
+                        if (i >= maxRetry)
+                            result = await new CaptchaChallengeSolver(httpClient, httpClientHandler, siteUrl, detectResult.Value, captchaProvider).Solve();
+
                         break;
                     case CloudflareProtection.Banned:
-                        result = new SolveResult
-                        {
-                            Success = false,
-                            FailReason = "IP address is banned",
-                            DetectResult = detectResult.Value,
-                        };
+                        result = SolveResult.NoProtection;
+                        result.DetectResult = detectResult.Value;
                         break;
                     case CloudflareProtection.Unknown:
-                        result = new SolveResult
-                        {
-                            Success = false,
-                            FailReason = "Unknown protection detected",
-                            DetectResult = detectResult.Value,
-                        };
+                        result = SolveResult.Unknown;
+                        result.DetectResult = detectResult.Value;
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
