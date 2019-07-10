@@ -2,7 +2,7 @@ using System;
 using System.Net.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Cloudflare.Test
+namespace CloudflareSolverRe.Test
 {
     [TestClass]
     public class Test

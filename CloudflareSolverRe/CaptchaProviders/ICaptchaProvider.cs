@@ -1,7 +1,7 @@
-﻿using Cloudflare.Structs;
+﻿using CloudflareSolverRe.Types.Captcha;
 using System.Threading.Tasks;
 
-namespace Cloudflare.CaptchaProviders
+namespace CloudflareSolverRe.CaptchaProviders
 {
     public interface ICaptchaProvider
     {

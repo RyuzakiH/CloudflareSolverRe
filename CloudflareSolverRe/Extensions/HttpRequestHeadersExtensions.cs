@@ -5,7 +5,7 @@ using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
 
-namespace Cloudflare.Extensions
+namespace CloudflareSolverRe.Extensions
 {
     public static class HttpRequestHeadersExtensions
     {

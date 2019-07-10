@@ -1,6 +1,6 @@
-﻿using Cloudflare.Enums;
-using Cloudflare.Extensions;
-using Cloudflare.Structs;
+﻿using CloudflareSolverRe.Enums;
+using CloudflareSolverRe.Extensions;
+using CloudflareSolverRe.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +9,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
-namespace Cloudflare
+namespace CloudflareSolverRe
 {
     public class CloudflareDetector
     {

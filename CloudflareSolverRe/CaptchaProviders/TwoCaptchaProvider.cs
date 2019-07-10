@@ -1,8 +1,8 @@
 ﻿using _2Captcha;
-using Cloudflare.Structs;
+using CloudflareSolverRe.Types.Captcha;
 using System.Threading.Tasks;
 
-namespace Cloudflare.CaptchaProviders
+namespace CloudflareSolverRe.CaptchaProviders
 {
     public class TwoCaptchaProvider : ICaptchaProvider
     {
@@ -10,10 +10,7 @@ namespace Cloudflare.CaptchaProviders
 
         private readonly TwoCaptcha twoCaptcha;
 
-        public TwoCaptchaProvider(string apiKey)
-        {
-            twoCaptcha = new TwoCaptcha(apiKey);
-        }
+        public TwoCaptchaProvider(string apiKey) => twoCaptcha = new TwoCaptcha(apiKey);
 
         public async Task<CaptchaSolveResult> SolveCaptcha(string siteKey, string webUrl)
         {

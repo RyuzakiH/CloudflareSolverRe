@@ -1,8 +1,8 @@
 ﻿using _AntiCaptcha;
-using Cloudflare.Structs;
+using CloudflareSolverRe.Types.Captcha;
 using System.Threading.Tasks;
 
-namespace Cloudflare.CaptchaProviders
+namespace CloudflareSolverRe.CaptchaProviders
 {
     public class AntiCaptchaProvider : ICaptchaProvider
     {
@@ -10,10 +10,7 @@ namespace Cloudflare.CaptchaProviders
 
         private readonly AntiCaptcha antiCaptcha;
 
-        public AntiCaptchaProvider(string apiKey)
-        {
-            antiCaptcha = new AntiCaptcha(apiKey);
-        }
+        public AntiCaptchaProvider(string apiKey) => antiCaptcha = new AntiCaptcha(apiKey);
 
         public async Task<CaptchaSolveResult> SolveCaptcha(string siteKey, string webUrl)
         {

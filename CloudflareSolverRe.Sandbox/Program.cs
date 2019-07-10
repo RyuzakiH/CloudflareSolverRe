@@ -3,9 +3,9 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using Cloudflare.CaptchaProviders;
+using CloudflareSolverRe.CaptchaProviders;
 
-namespace Cloudflare.Sandbox
+namespace CloudflareSolverRe.Sandbox
 {
     class Program
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Cloudflare.Exceptions
+namespace CloudflareSolverRe.Exceptions
 {
     public class CloudflareException : Exception
     {

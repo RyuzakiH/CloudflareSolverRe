@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Cloudflare.Extensions
+namespace CloudflareSolverRe.Extensions
 {
     public static class UriExtensions
     {

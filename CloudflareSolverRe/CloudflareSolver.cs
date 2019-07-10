@@ -1,13 +1,13 @@
-﻿using Cloudflare.CaptchaProviders;
-using Cloudflare.Enums;
-using Cloudflare.Extensions;
-using Cloudflare.Solvers;
-using Cloudflare.Structs;
+﻿using CloudflareSolverRe.CaptchaProviders;
+using CloudflareSolverRe.Enums;
+using CloudflareSolverRe.Extensions;
+using CloudflareSolverRe.Solvers;
+using CloudflareSolverRe.Types;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace Cloudflare
+namespace CloudflareSolverRe
 {
     public class CloudflareSolver
     {

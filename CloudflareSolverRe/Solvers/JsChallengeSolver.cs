@@ -1,16 +1,15 @@
-﻿using Cloudflare.Enums;
-using Cloudflare.Structs;
+﻿using CloudflareSolverRe.Enums;
+using CloudflareSolverRe.Types;
+using CloudflareSolverRe.Types.Javascript;
 using Jint;
 using System;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace Cloudflare.Solvers
+namespace CloudflareSolverRe.Solvers
 {
     public class JsChallengeSolver : ChallengeSolver
     {
@@ -46,7 +45,7 @@ namespace Cloudflare.Solvers
 
         private async Task<SolveResult> SolveChallenge(string html)
         {
-            var challenge = ExtractJsChallenge(html);
+            var challenge = JsChallenge.Parse(html);
 
             var preparedJsCode = PrepareJsScript(challenge);
 
@@ -56,37 +55,11 @@ namespace Cloudflare.Solvers
             //var solution = new JsChallengeSolution(clearancePage, challenge.Form.S, challenge.Form.VerificationCode, challenge.Form.Pass, double.Parse(jschl_answer));
             var solution = new JsChallengeSolution(clearancePage, challenge.Form, double.Parse(jschl_answer));
 
-            await Task.Delay(challenge.Delay + 100);
+            await Task.Delay(challenge.Script.Delay + 100);
 
             return await SubmitJsSolution(solution);
         }
-
-        private static JsChallenge ExtractJsChallenge(string html)
-        {
-            var formMatch = CloudflareRegex.JsFormRegex.Match(html);
-            var script = CloudflareRegex.ScriptRegex.Match(html).Groups["script"].Value;
-            var defineMatch = CloudflareRegex.JsDefineRegex.Match(script);
-
-            return new JsChallenge
-            {
-                Form = new JsForm
-                {
-                    Action = formMatch.Groups["action"].Value,
-                    S = formMatch.Groups["s"].Value,
-                    VerificationCode = formMatch.Groups["jschl_vc"].Value,
-                    Pass = formMatch.Groups["pass"].Value
-                },
-                Script = script,
-                ClassDefinition = defineMatch.Value,
-                ClassName = defineMatch.Groups["className"].Value,
-                PropertyName = defineMatch.Groups["propName"].Value,
-                Calculations = CloudflareRegex.JsCalcRegex.Matches(script).Cast<Match>().Select(m => m.Value),
-                IsHostLength = CloudflareRegex.JsResultRegex.Match(script).Groups["addHostLength"].Success,
-                Delay = int.Parse(CloudflareRegex.JsDelayRegex.Match(script).Groups["delay"].Value),
-                CfdnHidden = CloudflareRegex.JsHtmlHiddenRegex.Match(html).Groups["inner"].Value
-            };
-        }
-
+        
         private async Task<SolveResult> SubmitJsSolution(JsChallengeSolution solution)
         {
             PrepareHttpHandler();
@@ -112,36 +85,36 @@ namespace Cloudflare.Solvers
 
         private string PrepareJsScript(JsChallenge challenge)
         {
-            var solveScriptStringBuilder = new StringBuilder(challenge.ClassDefinition);
+            var solveScriptStringBuilder = new StringBuilder($"var {challenge.Script.ClassName}={{\"{challenge.Script.PropertyName}\":{challenge.Script.PropertyValue}}};");
 
-            foreach (var calculation in challenge.Calculations)
-            {
-                if (calculation.EndsWith("}();") && calculation.Contains("eval(eval("))
-                {
-                    var i = calculation.IndexOf("function", StringComparison.Ordinal);
-                    solveScriptStringBuilder.Append(calculation.Substring(0, i) + challenge.CfdnHidden + ";");
-                }
-                else if (calculation.EndsWith(")))));") && calculation.Contains("return eval("))
-                {
-                    var match = CloudflareRegex.JsPParamRegex.Match(calculation);
-                    if (match.Success)
-                    {
-                        var p = match.Groups["p"].Value;
-                        var i = calculation.IndexOf("(function", StringComparison.Ordinal);
-                        //(int)targetUri.Host[p]
-                        solveScriptStringBuilder.Append(calculation.Substring(0, i) + $"'{SiteUrl.Host}'.charCodeAt({p})" + ");");
-                    }
-                }
-                else
-                {
-                    solveScriptStringBuilder.Append(calculation);
-                }
-            }
+            //foreach (var calculation in challenge.Script.Calculations)
+            //{
+            //    if (calculation.EndsWith("}();") && calculation.Contains("eval(eval("))
+            //    {
+            //        solveScriptStringBuilder
+            //            .Append(calculation.Substring(0, calculation.IndexOf("function", StringComparison.Ordinal)) + challenge.Cfdn + ";");
+            //    }
+            //    else if (calculation.EndsWith(")))));") && calculation.Contains("return eval("))
+            //    {
+            //        var match = CloudflareRegex.JsPParamRegex.Match(calculation);
+            //        if (match.Success)
+            //        {
+            //            var p = match.Groups["p"].Value;
+            //            var i = calculation.IndexOf("(function", StringComparison.Ordinal);
+            //            //(int)targetUri.Host[p]
+            //            solveScriptStringBuilder.Append(calculation.Substring(0, i) + $"'{SiteUrl.Host}'.charCodeAt({p})" + ");");
+            //        }
+            //    }
+            //    else
+            //    {
+            //        solveScriptStringBuilder.Append(calculation);
+            //    }
+            //}
 
-            if (challenge.IsHostLength)
-                solveScriptStringBuilder.Append($"{challenge.ClassName}.{challenge.PropertyName} += {SiteUrl.Host.Length};");
+            if (challenge.Script.IsHostLength)
+                solveScriptStringBuilder.Append($"{challenge.Script.ClassName}.{challenge.Script.PropertyName} += {SiteUrl.Host.Length};");
 
-            solveScriptStringBuilder.Append($"{challenge.ClassName}.{challenge.PropertyName}.toFixed(10)");
+            solveScriptStringBuilder.Append($"{challenge.Script.ClassName}.{challenge.Script.PropertyName}.toFixed({challenge.Script.Round})");
 
             //var temp = solveScriptStringBuilder.ToString(); // for debugging
             return solveScriptStringBuilder.ToString();

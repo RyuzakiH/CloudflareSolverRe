@@ -1,5 +1,5 @@
-﻿using Cloudflare.Extensions;
-using Cloudflare.Structs;
+﻿using CloudflareSolverRe.Extensions;
+using CloudflareSolverRe.Types;
 using System;
 using System.Linq;
 using System.Net;
@@ -7,7 +7,7 @@ using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-namespace Cloudflare.Solvers
+namespace CloudflareSolverRe.Solvers
 {
     public class ChallengeSolver
     {
@@ -50,8 +50,11 @@ namespace Cloudflare.Solvers
         {
             try
             {
-                HttpClientHandler.AllowAutoRedirect = false;
-                HttpClientHandler.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+                if (HttpClientHandler.AllowAutoRedirect)
+                    HttpClientHandler.AllowAutoRedirect = false;
+
+                if (HttpClientHandler.AutomaticDecompression != (DecompressionMethods.GZip | DecompressionMethods.Deflate))
+                    HttpClientHandler.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
             }
             catch (Exception) { }
         }

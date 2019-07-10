@@ -1,12 +1,13 @@
-﻿using Cloudflare.CaptchaProviders;
-using Cloudflare.Structs;
+﻿using CloudflareSolverRe.CaptchaProviders;
+using CloudflareSolverRe.Types;
+using CloudflareSolverRe.Types.Captcha;
 using System;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-namespace Cloudflare.Solvers
+namespace CloudflareSolverRe.Solvers
 {
     public class CaptchaChallengeSolver : ChallengeSolver
     {
@@ -51,7 +52,7 @@ namespace Cloudflare.Solvers
 
         private async Task<SolveResult> SolveChallenge(string html)
         {
-            var challenge = ExtractCaptchaChallenge(html);
+            var challenge = CaptchaChallenge.Parse(html);
 
             var clearancePage = $"{SiteUrl.Scheme}://{SiteUrl.Host}{challenge.Action}";
 
@@ -62,18 +63,6 @@ namespace Cloudflare.Solvers
             var solution = new CaptchaChallengeSolution(clearancePage, challenge.S, result.Response);
 
             return await SubmitCaptchaSolution(solution);
-        }
-
-        private CaptchaChallenge ExtractCaptchaChallenge(string html)
-        {
-            var formMatch = CloudflareRegex.CaptchaFormRegex.Match(html);
-
-            return new CaptchaChallenge
-            {
-                Action = formMatch.Groups["action"].Value,
-                S = formMatch.Groups["s"].Value,
-                SiteKey = formMatch.Groups["siteKey"].Value
-            };
         }
 
         private async Task<SolveResult> SubmitCaptchaSolution(CaptchaChallengeSolution solution)

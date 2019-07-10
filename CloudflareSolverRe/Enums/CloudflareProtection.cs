@@ -1,4 +1,4 @@
-﻿namespace Cloudflare.Enums
+﻿namespace CloudflareSolverRe.Enums
 {
     public enum CloudflareProtection
     {

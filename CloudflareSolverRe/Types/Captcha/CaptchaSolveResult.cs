@@ -1,4 +1,4 @@
-﻿namespace Cloudflare.Structs
+﻿namespace CloudflareSolverRe.Types.Captcha
 {
     public struct CaptchaSolveResult
     {

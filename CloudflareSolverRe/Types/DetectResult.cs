@@ -1,7 +1,7 @@
-﻿using Cloudflare.Enums;
+﻿using CloudflareSolverRe.Enums;
 using System;
 
-namespace Cloudflare.Structs
+namespace CloudflareSolverRe.Types
 {
     public struct DetectResult : IEquatable<DetectResult>
     {

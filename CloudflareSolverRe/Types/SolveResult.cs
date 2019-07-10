@@ -1,7 +1,7 @@
 ﻿using System.Net.Http;
 using System.Runtime.InteropServices;
 
-namespace Cloudflare.Structs
+namespace CloudflareSolverRe.Types
 {
     public struct SolveResult
     {
