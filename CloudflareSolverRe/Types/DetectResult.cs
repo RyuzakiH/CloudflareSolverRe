@@ -11,15 +11,9 @@ namespace CloudflareSolverRe.Types
 
         public override string ToString() => Protection.ToString();
 
-        public static bool operator ==(DetectResult resultA, DetectResult resultB)
-        {
-            return resultA.Equals(resultB);
-        }
+        public static bool operator ==(DetectResult resultA, DetectResult resultB) => resultA.Equals(resultB);
 
-        public static bool operator !=(DetectResult resultA, DetectResult resultB)
-        {
-            return !(resultA == resultB);
-        }
+        public static bool operator !=(DetectResult resultA, DetectResult resultB) => !(resultA == resultB);
 
         public override bool Equals(object obj)
         {
