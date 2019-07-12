@@ -42,8 +42,6 @@ namespace CloudflareSolverRe.Sample
                 return;
             }
 
-            //uri = new Uri("https://hdmovie8.com/movies/young-sister-3/");
-
             // Once the protection has been bypassed we can use that httpClient to send the requests as usual
             var response = httpClient.GetAsync(uri).Result;
             var html = response.Content.ReadAsStringAsync().Result;

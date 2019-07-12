@@ -1,5 +1,4 @@
 ﻿using CloudflareSolverRe.Types;
-using CloudflareSolverRe.Types;
 using CloudflareSolverRe.Types.Javascript;
 using System;
 using System.Net;

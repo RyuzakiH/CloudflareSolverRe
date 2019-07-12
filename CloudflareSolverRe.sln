@@ -7,9 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudflareSolverRe", "src\C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudflareSolverRe.Sample", "sample\CloudflareSolverRe.Sample\CloudflareSolverRe.Sample.csproj", "{F44FEFA6-B85B-4C05-AD34-836DF6BF63B9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudflareSolverRe.Tests", "test\CloudflareSolverRe.Tests\CloudflareSolverRe.Tests.csproj", "{66216D52-64CA-49D3-99D3-30748B8F3DAF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudflareSolverRe.Captcha", "src\CloudflareSolverRe.Captcha\CloudflareSolverRe.Captcha.csproj", "{657A5FE7-7CEA-4407-94C3-18FDE56DD950}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudflareSolverRe.Captcha", "src\CloudflareSolverRe.Captcha\CloudflareSolverRe.Captcha.csproj", "{657A5FE7-7CEA-4407-94C3-18FDE56DD950}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudflareSolverRe.Tests", "test\CloudflareSolverRe.Tests\CloudflareSolverRe.Tests.csproj", "{89A9D8CB-01BA-43CA-83AE-2D760088154C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,14 +25,14 @@ Global
 		{F44FEFA6-B85B-4C05-AD34-836DF6BF63B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F44FEFA6-B85B-4C05-AD34-836DF6BF63B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F44FEFA6-B85B-4C05-AD34-836DF6BF63B9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{66216D52-64CA-49D3-99D3-30748B8F3DAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{66216D52-64CA-49D3-99D3-30748B8F3DAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{66216D52-64CA-49D3-99D3-30748B8F3DAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{66216D52-64CA-49D3-99D3-30748B8F3DAF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{657A5FE7-7CEA-4407-94C3-18FDE56DD950}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{657A5FE7-7CEA-4407-94C3-18FDE56DD950}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{657A5FE7-7CEA-4407-94C3-18FDE56DD950}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{657A5FE7-7CEA-4407-94C3-18FDE56DD950}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89A9D8CB-01BA-43CA-83AE-2D760088154C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89A9D8CB-01BA-43CA-83AE-2D760088154C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89A9D8CB-01BA-43CA-83AE-2D760088154C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89A9D8CB-01BA-43CA-83AE-2D760088154C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
