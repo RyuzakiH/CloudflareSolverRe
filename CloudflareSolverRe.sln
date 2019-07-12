@@ -1,13 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.28407.52
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2026
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudflareSolverRe", "CloudflareSolverRe\CloudflareSolverRe.csproj", "{E541E27A-8D55-4E2F-AC7D-DCA0DCDAC220}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudflareSolverRe", "src\CloudflareSolverRe\CloudflareSolverRe.csproj", "{E541E27A-8D55-4E2F-AC7D-DCA0DCDAC220}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudflareSolverRe.Sandbox", "CloudflareSolverRe.Sandbox\CloudflareSolverRe.Sandbox.csproj", "{F44FEFA6-B85B-4C05-AD34-836DF6BF63B9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudflareSolverRe.Sample", "sample\CloudflareSolverRe.Sample\CloudflareSolverRe.Sample.csproj", "{F44FEFA6-B85B-4C05-AD34-836DF6BF63B9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudflareSolverRe.Test", "CloudflareSolverRe.Test\CloudflareSolverRe.Test.csproj", "{66216D52-64CA-49D3-99D3-30748B8F3DAF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudflareSolverRe.Tests", "test\CloudflareSolverRe.Tests\CloudflareSolverRe.Tests.csproj", "{66216D52-64CA-49D3-99D3-30748B8F3DAF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

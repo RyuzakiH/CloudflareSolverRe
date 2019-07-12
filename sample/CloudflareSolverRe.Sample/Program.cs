@@ -1,11 +1,8 @@
 ﻿using System;
-using System.IO;
-using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using CloudflareSolverRe.CaptchaProviders;
 
-namespace CloudflareSolverRe.Sandbox
+namespace CloudflareSolverRe.Sample
 {
     class Program
     {
