@@ -9,7 +9,6 @@
         public string Value { get; protected set; }
         public double Result { get => Solve(); }
 
-        public virtual string ToCode() => Value;
         public virtual double Solve() => JsFuck.DecodeNumber(First) / JsFuck.DecodeNumber(Second);
     }
 }

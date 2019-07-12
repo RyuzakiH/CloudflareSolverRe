@@ -8,7 +8,6 @@
         string Second { get; }
         string Value { get; }
         double Result { get; }
-        string ToCode();
         double Solve();
     }
 }

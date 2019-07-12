@@ -1,4 +1,7 @@
-﻿using System.Text.RegularExpressions;
+﻿using CloudflareSolverRe.CaptchaProviders;
+using System;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace CloudflareSolverRe.Types.Captcha
 {
@@ -9,8 +12,9 @@ namespace CloudflareSolverRe.Types.Captcha
         public string Action { get; set; }
         public string S { get; set; }
         public string SiteKey { get; set; }
+        public Uri SiteUrl { get; set; }
 
-        public static CaptchaChallenge Parse(string html)
+        public static CaptchaChallenge Parse(string html, Uri siteUrl)
         {
             var formMatch = CaptchaFormRegex.Match(html);
 
@@ -18,8 +22,14 @@ namespace CloudflareSolverRe.Types.Captcha
             {
                 Action = formMatch.Groups["action"].Value,
                 S = formMatch.Groups["s"].Value,
-                SiteKey = formMatch.Groups["siteKey"].Value
+                SiteKey = formMatch.Groups["siteKey"].Value,
+                SiteUrl = siteUrl
             };
+        }
+
+        public async Task<CaptchaSolveResult> Solve(ICaptchaProvider captchaProvider)
+        {
+            return await captchaProvider.SolveCaptcha(SiteKey, SiteUrl.AbsoluteUri);
         }
 
     }

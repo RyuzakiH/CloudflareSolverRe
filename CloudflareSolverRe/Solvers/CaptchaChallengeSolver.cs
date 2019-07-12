@@ -52,11 +52,12 @@ namespace CloudflareSolverRe.Solvers
 
         private async Task<SolveResult> SolveChallenge(string html)
         {
-            var challenge = CaptchaChallenge.Parse(html);
+            var challenge = CaptchaChallenge.Parse(html, SiteUrl);
 
             var clearancePage = $"{SiteUrl.Scheme}://{SiteUrl.Host}{challenge.Action}";
 
-            var result = await captchaProvider.SolveCaptcha(challenge.SiteKey, SiteUrl.AbsoluteUri);
+            var result = await challenge.Solve(captchaProvider);
+
             if (!result.Success)
                 return new SolveResult(false, LayerCaptcha, $"captcha provider error ({result.Response})", DetectResult);
 

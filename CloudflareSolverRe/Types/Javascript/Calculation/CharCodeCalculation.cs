@@ -41,9 +41,6 @@ namespace CloudflareSolverRe.Types.Javascript
             Operator = match.Groups["operator"].Value;
         }
 
-        public new string ToCode() => Value.Substring(0, Value.IndexOf("(function", StringComparison.Ordinal))
-                + $"'{SiteUrl.Host}'.charCodeAt({P})" + ");";
-
         public new double Solve() => JsFuck.DecodeNumber(First) / (JsFuck.DecodeNumber(second1) + charCode);
     }
 }
