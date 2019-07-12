@@ -1,5 +1,4 @@
-﻿using CloudflareSolverRe.Types;
-using CloudflareSolverRe.Extensions;
+﻿using CloudflareSolverRe.Extensions;
 using CloudflareSolverRe.Types;
 using System;
 using System.Collections.Generic;

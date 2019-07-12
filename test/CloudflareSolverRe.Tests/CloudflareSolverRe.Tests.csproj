@@ -2,10 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-
     <IsPackable>false</IsPackable>
-
-    <RootNamespace>Cloudflare.Test</RootNamespace>
+    <RootNamespace>CloudflareSolverRe.Test</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

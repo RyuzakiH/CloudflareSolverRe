@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="2CaptchaAPI" Version="1.3.1" />
+    <PackageReference Include="AntiCaptchaAPI" Version="1.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CloudflareSolverRe\CloudflareSolverRe.csproj" />
+  </ItemGroup>
+
+</Project>

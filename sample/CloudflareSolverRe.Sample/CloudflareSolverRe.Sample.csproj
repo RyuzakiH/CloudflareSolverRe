@@ -3,10 +3,11 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <RootNamespace>Cloudflare.Sandbox</RootNamespace>
+    <RootNamespace>CloudflareSolverRe.Sandbox</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\CloudflareSolverRe.Captcha\CloudflareSolverRe.Captcha.csproj" />
     <ProjectReference Include="..\..\src\CloudflareSolverRe\CloudflareSolverRe.csproj" />
   </ItemGroup>
 
