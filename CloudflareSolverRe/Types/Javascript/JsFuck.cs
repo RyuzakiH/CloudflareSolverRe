@@ -1,8 +1,4 @@
-﻿using CloudflareSolverRe.Extensions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace CloudflareSolverRe.Types.Javascript
@@ -42,7 +38,7 @@ namespace CloudflareSolverRe.Types.Javascript
             if (digit == 0)
                 return $"(+[]{(stringResult ? "+[]" : "")})";
             else if (digit == 1)
-                return $"(+!![]{(stringResult ? " +[]" : "")})";
+                return $"(+!![]{(stringResult ? "+[]" : "")})";
 
             var encoded = Enumerable.Range(0, digit - 1).Select(d => "!![]").Prepend("!+[]");
 

@@ -1,5 +1,4 @@
-﻿using CloudflareSolverRe.Enums;
-using System;
+﻿using System;
 
 namespace CloudflareSolverRe.Types
 {

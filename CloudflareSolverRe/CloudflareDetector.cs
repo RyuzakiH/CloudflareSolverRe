@@ -1,4 +1,4 @@
-﻿using CloudflareSolverRe.Enums;
+﻿using CloudflareSolverRe.Types;
 using CloudflareSolverRe.Extensions;
 using CloudflareSolverRe.Types;
 using System;

@@ -1,13 +1,10 @@
-﻿using CloudflareSolverRe.Enums;
+﻿using CloudflareSolverRe.Types;
 using CloudflareSolverRe.Types;
 using CloudflareSolverRe.Types.Javascript;
-using Jint;
 using System;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CloudflareSolverRe.Solvers
@@ -23,7 +20,6 @@ namespace CloudflareSolverRe.Solvers
             : base(handler, siteUrl, detectResult, maxRetries)
         {
         }
-
 
         public new async Task<SolveResult> Solve()
         {

@@ -16,9 +16,7 @@ namespace CloudflareSolverRe.Sandbox
              * var cf = new CloudflareSolver(new AntiCaptchaProvider("YOUR_API_KEY"));
              */
             //var socketsHttpHandler = new SocketsHttpHandler();
-
             
-
             var cf = new CloudflareSolver();
             //CookieContainer cookies = new CookieContainer();
             var httpClientHandler = new HttpClientHandler
@@ -30,11 +28,11 @@ namespace CloudflareSolverRe.Sandbox
 
             //var uri = new Uri("https://www.japscan.to");
             //var uri = new Uri("https://www.spacetorrent.cloud/");
-            //var uri = new Uri("http://hdmovie8.com");
+            var uri = new Uri("http://hdmovie8.com");
             //var uri = new Uri("https://github.com");
             //var uri = new Uri("https://www.mkvcage.ws/");
             //var uri = new Uri("http://codepen.io/");
-            var uri = new Uri("https://uam.hitmehard.fun/HIT");
+            //var uri = new Uri("https://uam.hitmehard.fun/HIT");
 
             var result = cf.Solve(httpClient, httpClientHandler, uri, 3).Result;
             if (result.Success)

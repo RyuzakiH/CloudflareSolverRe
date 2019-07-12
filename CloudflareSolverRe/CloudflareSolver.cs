@@ -1,5 +1,4 @@
 ﻿using CloudflareSolverRe.CaptchaProviders;
-using CloudflareSolverRe.Enums;
 using CloudflareSolverRe.Extensions;
 using CloudflareSolverRe.Solvers;
 using CloudflareSolverRe.Types;
