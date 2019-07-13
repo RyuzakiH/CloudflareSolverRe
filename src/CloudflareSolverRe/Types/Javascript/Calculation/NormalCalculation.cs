@@ -4,7 +4,7 @@ namespace CloudflareSolverRe.Types.Javascript
 {
     public class NormalCalculation : JsCalculation, IJsCalculation
     {
-        private static readonly Regex NormalCalculationRegex = new Regex(@"\s*?\w+?\.\w+?(?<operator>[+\-*\/]{0,1})=(?<normal>(?<first>(?:\+|\(|\)|\!|\[|\])+?)/(?<second>(?:\+|\(|\)|\!|\[|\])+?);)", RegexOptions.Singleline | RegexOptions.Compiled);
+        private static readonly Regex NormalCalculationRegex = new Regex(@"\s*?\w+?\.\w+?(?<operator>[+\-*\/]{0,1})=(?<normal>(?<first>(?:\+|\(|\)|\!|\[|\])+?)/(?<second>(?:\+|\(|\)|\!|\[|\])+?);)", RegexOptions.Singleline/* | RegexOptions.Compiled*/);
         
         public NormalCalculation(string calculation)
         {

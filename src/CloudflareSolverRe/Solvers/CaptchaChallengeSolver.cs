@@ -69,9 +69,9 @@ namespace CloudflareSolverRe.Solvers
         private async Task<SolveResult> SubmitCaptchaSolution(CaptchaChallengeSolution solution)
         {
             PrepareHttpHandler();
-            PrepareHttpHeaders();
 
-            var response = await HttpClient.GetAsync(solution.ClearancePage);
+            var request = CreateRequest(new Uri(solution.ClearancePage));
+            var response = await HttpClient.SendAsync(request);
 
             if (response.StatusCode.Equals(HttpStatusCode.Found))
             {

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>netstandard1.1</TargetFramework>
     <RootNamespace>Cloudflare</RootNamespace>
     <PackageIconUrl>https://i.imgur.com/1kOksXx.png</PackageIconUrl>
     <Version>1.2.0</Version>
@@ -19,10 +19,6 @@
 
   <ItemGroup>
     <Folder Include="Properties\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="System.Reflection.TypeExtensions" Version="4.5.1" />
   </ItemGroup>
 
 </Project>

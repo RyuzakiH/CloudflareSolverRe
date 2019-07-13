@@ -7,7 +7,7 @@ namespace CloudflareSolverRe.Types.Captcha
 {
     public class CaptchaChallenge
     {
-        private static readonly Regex CaptchaFormRegex = new Regex(@"<form.+?action=""(?<action>\S+?)"".*?>.*?name=""s"" value=""(?<s>\S+)"".*?fallback\?\w+?=(?<siteKey>\S+)""", RegexOptions.Singleline | RegexOptions.Compiled);
+        private static readonly Regex CaptchaFormRegex = new Regex(@"<form.+?action=""(?<action>\S+?)"".*?>.*?name=""s"" value=""(?<s>\S+)"".*?fallback\?\w+?=(?<siteKey>\S+)""", RegexOptions.Singleline/* | RegexOptions.Compiled*/);
 
         public string Action { get; set; }
         public string S { get; set; }

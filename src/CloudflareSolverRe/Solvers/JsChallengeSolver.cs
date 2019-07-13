@@ -53,13 +53,13 @@ namespace CloudflareSolverRe.Solvers
 
             return await SubmitJsSolution(solution);
         }
-
+        
         private async Task<SolveResult> SubmitJsSolution(JsChallengeSolution solution)
         {
             PrepareHttpHandler();
-            PrepareHttpHeaders();
 
-            var response = await HttpClient.GetAsync(solution.ClearanceUrl);
+            var request = CreateRequest(new Uri(solution.ClearanceUrl));
+            var response = await HttpClient.SendAsync(request);
 
             if (response.StatusCode == HttpStatusCode.Found)
             {

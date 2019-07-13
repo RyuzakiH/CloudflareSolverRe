@@ -12,16 +12,13 @@ namespace CloudflareSolverRe
 {
     public class CloudflareDetector
     {
-
         private static readonly IEnumerable<string> CloudFlareServerNames = new[] { "cloudflare", "cloudflare-nginx" };
-        
 
-        public static bool IsCloudflareProtected(HttpResponseMessage response)
-        {
-            return response.Headers.Server
+
+        public static bool IsCloudflareProtected(HttpResponseMessage response) => 
+            response.Headers.Server
                 .Any(i => i.Product != null
                     && CloudFlareServerNames.Any(s => string.Compare(s, i.Product.Name, StringComparison.OrdinalIgnoreCase).Equals(0)));
-        }
 
         public static bool IsClearanceRequired(HttpResponseMessage response) =>
             response.StatusCode.Equals(HttpStatusCode.ServiceUnavailable) && IsCloudflareProtected(response);
@@ -31,8 +28,11 @@ namespace CloudflareSolverRe
         {
             try
             {
-                httpClientHandler.AllowAutoRedirect = false;
-                httpClientHandler.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+                if (httpClientHandler.AllowAutoRedirect)
+                    httpClientHandler.AllowAutoRedirect = false;
+
+                if (httpClientHandler.AutomaticDecompression != (DecompressionMethods.GZip | DecompressionMethods.Deflate))
+                    httpClientHandler.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
             }
             catch (Exception) { }
         }
@@ -46,14 +46,11 @@ namespace CloudflareSolverRe
                 headers.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0");
 
             if (!headers.Accept.Any())
-                headers.AddWithoutValidation("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+                headers.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
 
             if (!headers.AcceptLanguage.Any())
-                headers.AddWithoutValidation("Accept-Language", "en-US,en;q=0.5");
-
-            //if (!headers.AcceptEncoding.Any())
-            //    headers.Add("Accept-Encoding", "gzip, deflate");
-
+                headers.AcceptLanguage.ParseAdd("en-US,en;q=0.5");
+            
             if (!headers.Connection.Any())
                 headers.Connection.ParseAdd("keep-alive");
 
@@ -64,23 +61,35 @@ namespace CloudflareSolverRe
                 headers.Add("Upgrade-Insecure-Requests", "1");
         }
 
+        private static HttpRequestMessage CreateRequest(Uri targetUri)
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, targetUri);
+
+            PrepareHttpHeaders(request.Headers, targetUri);
+
+            return request;
+        }
+
 
         public static async Task<DetectResult> Detect(HttpClient httpClient, HttpClientHandler httpClientHandler, Uri targetUri, bool requireHttps = false)
         {
             PrepareHttpHandler(httpClientHandler);
-            PrepareHttpHeaders(httpClient.DefaultRequestHeaders, targetUri);
 
             if (!requireHttps)
                 targetUri = targetUri.ForceHttp();
 
-            var response = await httpClient.GetAsync(targetUri);
+            var request = CreateRequest(targetUri);
+            var response = await httpClient.SendAsync(request);
 
             var detectResult = await Detect(response);
 
             if (detectResult.Protection.Equals(CloudflareProtection.Unknown) && !detectResult.SupportsHttp)
             {
                 targetUri = targetUri.ForceHttps();
-                response = await httpClient.GetAsync(targetUri);
+
+                request = CreateRequest(targetUri);
+                response = await httpClient.SendAsync(request);
+
                 detectResult = await Detect(response);
             }
 
@@ -147,7 +156,6 @@ namespace CloudflareSolverRe
                 Protection = CloudflareProtection.Unknown,
             };
         }
-
 
 
     }

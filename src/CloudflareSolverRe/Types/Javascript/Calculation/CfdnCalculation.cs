@@ -4,7 +4,7 @@ namespace CloudflareSolverRe.Types.Javascript
 {
     public class CfdnCalculation : JsCalculation, IJsCalculation
     {
-        private static readonly Regex CharCodeCalculationRegex = new Regex(@"\s*?\w+?\.\w+?(?<operator>[+\-*\/])=(?<cfdn>function\(.\)\{var.*?;\s.*?;)", RegexOptions.Singleline | RegexOptions.Compiled);
+        private static readonly Regex CharCodeCalculationRegex = new Regex(@"\s*?\w+?\.\w+?(?<operator>[+\-*\/])=(?<cfdn>function\(.\)\{var.*?;\s.*?;)", RegexOptions.Singleline/* | RegexOptions.Compiled*/);
 
         public new double Result { get => Solve(); }
 

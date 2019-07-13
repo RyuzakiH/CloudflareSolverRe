@@ -29,7 +29,7 @@ namespace CloudflareSolverRe
         private bool IsCaptchaSolvingEnabled() => captchaProvider != null;
 
 
-        public async Task<SolveResult> Solve(HttpClient httpClient, HttpClientHandler httpClientHandler, Uri siteUrl, int maxRetry = DefaultMaxRetries, bool validateCloudflare = true, DetectResult? detectResult = null)
+        public async Task<SolveResult> Solve(HttpClient httpClient, HttpClientHandler httpClientHandler, Uri siteUrl, int maxRetry = DefaultMaxRetries, DetectResult? detectResult = null)
         {
             var result = default(SolveResult);
             var newDetectResult = default(DetectResult?);

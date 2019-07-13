@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
@@ -58,35 +59,41 @@ namespace CloudflareSolverRe.Solvers
             }
             catch (Exception) { }
         }
-
-        protected void PrepareHttpHeaders()
+        
+        protected static void PrepareHttpHeaders(HttpRequestHeaders headers, Uri siteUrl)
         {
-            if (HttpClient.DefaultRequestHeaders.Host == null)
-                HttpClient.DefaultRequestHeaders.Host = SiteUrl.Host;
+            if (headers.Host == null)
+                headers.Host = siteUrl.Host;
 
-            if (!HttpClient.DefaultRequestHeaders.UserAgent.Any())
-                HttpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0");
+            if (!headers.UserAgent.Any())
+                headers.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0");
 
-            if (!HttpClient.DefaultRequestHeaders.Accept.Any())
-                HttpClient.DefaultRequestHeaders.AddWithoutValidation("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+            if (!headers.Accept.Any())
+                headers.TryAddWithoutValidation("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
 
-            if (!HttpClient.DefaultRequestHeaders.AcceptLanguage.Any())
-                HttpClient.DefaultRequestHeaders.AddWithoutValidation("Accept-Language", "en-US,en;q=0.5");
+            if (!headers.AcceptLanguage.Any())
+                headers.TryAddWithoutValidation("Accept-Language", "en-US,en;q=0.5");
+            
+            if (headers.Referrer == null)
+                headers.Referrer = siteUrl;
 
-            //if (!HttpClient.DefaultRequestHeaders.AcceptEncoding.Any())
-            //    HttpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate");
-
-            if (HttpClient.DefaultRequestHeaders.Referrer == null)
-                HttpClient.DefaultRequestHeaders.Referrer = SiteUrl;
-
-            if (!HttpClient.DefaultRequestHeaders.Connection.Any())
-                HttpClient.DefaultRequestHeaders.Connection.ParseAdd("keep-alive");
+            if (!headers.Connection.Any())
+                headers.Connection.ParseAdd("keep-alive");
 
             //if (!headers.Contains("DNT"))
             //    headers.Add("DNT", "1");
 
-            if (!HttpClient.DefaultRequestHeaders.Contains("Upgrade-Insecure-Requests"))
-                HttpClient.DefaultRequestHeaders.Add("Upgrade-Insecure-Requests", "1");
+            if (!headers.Contains("Upgrade-Insecure-Requests"))
+                headers.Add("Upgrade-Insecure-Requests", "1");
+        }
+
+        protected static HttpRequestMessage CreateRequest(Uri targetUri)
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, targetUri);
+
+            PrepareHttpHeaders(request.Headers, targetUri);
+
+            return request;
         }
 
 
