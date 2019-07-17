@@ -60,9 +60,9 @@ namespace CloudflareSolverRe.Sample
 
 
 
-            var cf = new CloudflareSolver()
+            var cf = new CloudflareSolver
             {
-                MaxRetries = 1
+                MaxRetries = 3
             };
             //CookieContainer cookies = new CookieContainer();
             var httpClientHandler = new HttpClientHandler
@@ -80,11 +80,11 @@ namespace CloudflareSolverRe.Sample
 
             //var uri = new Uri("https://www.japscan.to");
             //var uri = new Uri("https://www.spacetorrent.cloud/");
-            var uri = new Uri("https://hdmovie8.com");
+            //var uri = new Uri("https://hdmovie8.com");
             //var uri = new Uri("https://github.com");
             //var uri = new Uri("https://www.mkvcage.ws/");
             //var uri = new Uri("http://codepen.io/");
-            //var uri = new Uri("https://uam.hitmehard.fun/HIT");
+            var uri = new Uri("https://uam.hitmehard.fun/HIT");
             
             var result = cf.Solve(httpClient, httpClientHandler, uri).Result;
             if (result.Success)

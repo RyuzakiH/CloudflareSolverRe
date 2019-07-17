@@ -68,7 +68,7 @@ namespace CloudflareSolverRe.Solvers
         {
             PrepareHttpHandler(HttpClientHandler);
 
-            var request = CreateRequest(new Uri(solution.ClearancePage));
+            var request = CreateRequest(new Uri(solution.ClearanceUrl));
             var response = await HttpClient.SendAsync(request);
 
             if (response.StatusCode.Equals(HttpStatusCode.Found))
