@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Http;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using CloudflareSolverRe.CaptchaProviders;
 using CloudflareSolverRe.Exceptions;
 
@@ -30,32 +31,39 @@ namespace CloudflareSolverRe.Sample
             //var oo = pp.Content.ReadAsStringAsync().Result;
 
 
-
-
-            var target = new Uri("http://uam.hitmehard.fun/HIT");
+            var target = new Uri("https://uam.hitmehard.fun/HIT");
+            //var target = new Uri("https://www.spacetorrent.cloud/");
 
             var handler = new ClearanceHandler
             {
-                MaxRetries = 2
+                //MaxRetries = 3,
+                //ClearanceDelay = 3000
             };
 
             var client = new HttpClient(handler);
             client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0");
-
+            
             try
             {
-                var content = client.GetStringAsync(target).Result;
-                Console.WriteLine(content);
+                //var content = client.GetStringAsync(target).Result;
+                //Console.WriteLine(content);
             }
             catch (AggregateException ex) when (ex.InnerException is CloudFlareClearanceException)
             {
-                Console.WriteLine(ex.InnerException.Message);
+                // After all retries, clearance still failed.
+            }
+            catch (AggregateException ex) when (ex.InnerException is TaskCanceledException)
+            {
+                // Looks like we ran into a timeout. Too many clearance attempts?
+                // Maybe you should increase client.Timeout as each attempt will take about five seconds.
             }
 
 
 
-
-            var cf = new CloudflareSolver();
+            var cf = new CloudflareSolver()
+            {
+                MaxRetries = 1
+            };
             //CookieContainer cookies = new CookieContainer();
             var httpClientHandler = new HttpClientHandler
             {
@@ -78,7 +86,7 @@ namespace CloudflareSolverRe.Sample
             //var uri = new Uri("http://codepen.io/");
             //var uri = new Uri("https://uam.hitmehard.fun/HIT");
             
-            var result = cf.Solve(httpClient, httpClientHandler, uri, 3).Result;
+            var result = cf.Solve(httpClient, httpClientHandler, uri).Result;
             if (result.Success)
             {
                 Console.WriteLine($"[Success] Protection bypassed: {result.DetectResult.Protection}");

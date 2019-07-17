@@ -13,14 +13,14 @@ namespace CloudflareSolverRe.Solvers
     {
         private readonly ICaptchaProvider captchaProvider;
 
-        public CaptchaChallengeSolver(HttpClient client, HttpClientHandler handler, Uri siteUrl, DetectResult detectResult, ICaptchaProvider captchaProvider, [Optional]int maxRetries)
-            : base(client, handler, siteUrl, detectResult, maxRetries)
+        public CaptchaChallengeSolver(HttpClient client, HttpClientHandler handler, Uri siteUrl, DetectResult detectResult, ICaptchaProvider captchaProvider)
+            : base(client, handler, siteUrl, detectResult)
         {
             this.captchaProvider = captchaProvider;
         }
 
-        public CaptchaChallengeSolver(HttpClientHandler handler, Uri siteUrl, DetectResult detectResult, ICaptchaProvider captchaProvider, [Optional]int maxRetries)
-            : base(handler, siteUrl, detectResult, maxRetries)
+        public CaptchaChallengeSolver(HttpClientHandler handler, Uri siteUrl, DetectResult detectResult, ICaptchaProvider captchaProvider)
+            : base(handler, siteUrl, detectResult)
         {
             this.captchaProvider = captchaProvider;
         }
@@ -54,21 +54,19 @@ namespace CloudflareSolverRe.Solvers
         {
             var challenge = CaptchaChallenge.Parse(html, SiteUrl);
 
-            var clearancePage = $"{SiteUrl.Scheme}://{SiteUrl.Host}{challenge.Action}";
-
             var result = await challenge.Solve(captchaProvider);
 
             if (!result.Success)
                 return new SolveResult(false, LayerCaptcha, $"captcha provider error ({result.Response})", DetectResult);
 
-            var solution = new CaptchaChallengeSolution(clearancePage, challenge.S, result.Response);
+            var solution = new CaptchaChallengeSolution(challenge, result.Response);
 
             return await SubmitCaptchaSolution(solution);
         }
 
         private async Task<SolveResult> SubmitCaptchaSolution(CaptchaChallengeSolution solution)
         {
-            PrepareHttpHandler();
+            PrepareHttpHandler(HttpClientHandler);
 
             var request = CreateRequest(new Uri(solution.ClearancePage));
             var response = await HttpClient.SendAsync(request);

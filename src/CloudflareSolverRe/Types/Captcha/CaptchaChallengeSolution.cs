@@ -5,7 +5,7 @@ namespace CloudflareSolverRe.Types.Captcha
     /// <summary>
     /// Holds the information, which is required to pass the Cloudflare clearance.
     /// </summary>
-    public struct CaptchaChallengeSolution : IEquatable<CaptchaChallengeSolution>
+    public class CaptchaChallengeSolution : IEquatable<CaptchaChallengeSolution>
     {
         public string ClearancePage { get; }
         public string RecaptchaResponse { get; }
@@ -22,18 +22,23 @@ namespace CloudflareSolverRe.Types.Captcha
             RecaptchaResponse = recaptchaResponse;
         }
 
-        public static bool operator ==(CaptchaChallengeSolution solutionA, CaptchaChallengeSolution solutionB) => solutionA.Equals(solutionB);
-
-        public static bool operator !=(CaptchaChallengeSolution solutionA, CaptchaChallengeSolution solutionB) => !(solutionA == solutionB);
-
-        public override bool Equals(object obj)
+        public CaptchaChallengeSolution(CaptchaChallenge challenge, string recaptchaResponse)
         {
-            var other = obj as CaptchaChallengeSolution?;
-            return other.HasValue && Equals(other.Value);
+            ClearancePage = $"{challenge.SiteUrl.Scheme}://{challenge.SiteUrl.Host}{challenge.Action}";
+            S = challenge.S;
+            RecaptchaResponse = recaptchaResponse;
         }
+
+        public static bool operator ==(CaptchaChallengeSolution solution1, CaptchaChallengeSolution solution2) =>
+            (solution1 is null) ? (solution2 is null) : solution1.Equals(solution2);
+
+        public static bool operator !=(CaptchaChallengeSolution solution1, CaptchaChallengeSolution solution2) => !(solution1 == solution2);
+
+        public override bool Equals(object obj) => Equals(obj as CaptchaChallengeSolution);
+
+        public bool Equals(CaptchaChallengeSolution other) => other != null && other.ClearanceUrl == ClearanceUrl;
 
         public override int GetHashCode() => ClearanceUrl.GetHashCode();
 
-        public bool Equals(CaptchaChallengeSolution other) => other.ClearanceUrl == ClearanceUrl;
     }
 }

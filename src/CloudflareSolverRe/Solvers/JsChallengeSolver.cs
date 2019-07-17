@@ -10,22 +10,19 @@ namespace CloudflareSolverRe.Solvers
 {
     public class JsChallengeSolver : ChallengeSolver
     {
-        public JsChallengeSolver(HttpClient client, HttpClientHandler handler, Uri siteUrl, DetectResult detectResult, [Optional]int maxRetries)
-            : base(client, handler, siteUrl, detectResult, maxRetries)
+        public JsChallengeSolver(HttpClient client, HttpClientHandler handler, Uri siteUrl, DetectResult detectResult, [Optional]int clearanceDelay)
+            : base(client, handler, siteUrl, detectResult, clearanceDelay)
         {
         }
 
-        public JsChallengeSolver(HttpClientHandler handler, Uri siteUrl, DetectResult detectResult, [Optional]int maxRetries)
-            : base(handler, siteUrl, detectResult, maxRetries)
+        public JsChallengeSolver(HttpClientHandler handler, Uri siteUrl, DetectResult detectResult, [Optional]int clearanceDelay)
+            : base(handler, siteUrl, detectResult, clearanceDelay)
         {
         }
 
         public new async Task<SolveResult> Solve()
         {
-            var solution = default(SolveResult);
-
-            for (int i = 0; (i < MaxRetries) && !solution.Success; i++)
-                solution = await SolveChallenge(DetectResult.Html);
+            var solution = await SolveChallenge(DetectResult.Html);
 
             if (!solution.Success && solution.FailReason.Contains("captcha"))
             {
@@ -45,20 +42,18 @@ namespace CloudflareSolverRe.Solvers
 
             var jschl_answer = challenge.Solve();
 
-            var clearancePage = $"{SiteUrl.Scheme}://{SiteUrl.Host}{challenge.Form.Action}";
+            var solution = new JsChallengeSolution(SiteUrl, challenge.Form, jschl_answer);
 
-            var solution = new JsChallengeSolution(clearancePage, challenge.Form, jschl_answer);
-
-            await Task.Delay(challenge.Script.Delay + 100);
+            await Task.Delay(ClearanceDelay <= 0 ? challenge.Script.Delay + 100 : ClearanceDelay);
 
             return await SubmitJsSolution(solution);
         }
-        
+
         private async Task<SolveResult> SubmitJsSolution(JsChallengeSolution solution)
         {
-            PrepareHttpHandler();
+            PrepareHttpHandler(HttpClientHandler);
 
-            var request = CreateRequest(new Uri(solution.ClearanceUrl));
+            var request = CreateRequest(new Uri(solution.ClearanceUrl), SiteUrl);
             var response = await HttpClient.SendAsync(request);
 
             if (response.StatusCode == HttpStatusCode.Found)

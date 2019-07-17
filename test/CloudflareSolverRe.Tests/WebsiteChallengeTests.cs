@@ -11,14 +11,17 @@ namespace CloudflareSolverRe.Tests
         [TestMethod]
         public void SolveWebsiteChallenge_uamhitmehardfun()
         {
-            var cf = new CloudflareSolver();
+            var cf = new CloudflareSolver
+            {
+                MaxRetries = 3
+            };
 
             var httpClientHandler = new HttpClientHandler();
             var httpClient = new HttpClient(httpClientHandler);
 
             var uri = new Uri("https://uam.hitmehard.fun/HIT");
 
-            var result = cf.Solve(httpClient, httpClientHandler, uri, 3).Result;
+            var result = cf.Solve(httpClient, httpClientHandler, uri).Result;
 
             Assert.IsTrue(result.Success);
 
@@ -31,14 +34,17 @@ namespace CloudflareSolverRe.Tests
         [TestMethod]
         public void SolveWebsiteChallenge_uamhitmehardfun_WithAntiCaptcha()
         {
-            var cf = new CloudflareSolver(new AntiCaptchaProvider("YOUR_API_KEY"));
+            var cf = new CloudflareSolver(new AntiCaptchaProvider("YOUR_API_KEY"))
+            {
+                MaxRetries = 1
+            };
 
             var httpClientHandler = new HttpClientHandler();
             var httpClient = new HttpClient(httpClientHandler);
 
             var uri = new Uri("https://uam.hitmehard.fun/HIT");
 
-            var result = cf.Solve(httpClient, httpClientHandler, uri, 1).Result;
+            var result = cf.Solve(httpClient, httpClientHandler, uri).Result;
 
             Assert.IsTrue(result.Success);
 
@@ -51,14 +57,17 @@ namespace CloudflareSolverRe.Tests
         [TestMethod]
         public void SolveWebsiteChallenge_uamhitmehardfun_With2Captcha()
         {
-            var cf = new CloudflareSolver(new TwoCaptchaProvider("YOUR_API_KEY"));
+            var cf = new CloudflareSolver(new TwoCaptchaProvider("YOUR_API_KEY"))
+            {
+                MaxRetries = 1
+            };
 
             var httpClientHandler = new HttpClientHandler();
             var httpClient = new HttpClient(httpClientHandler);
 
             var uri = new Uri("https://uam.hitmehard.fun/HIT");
 
-            var result = cf.Solve(httpClient, httpClientHandler, uri, 1).Result;
+            var result = cf.Solve(httpClient, httpClientHandler, uri).Result;
 
             Assert.IsTrue(result.Success);
 

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard1.1</TargetFramework>
-    <RootNamespace>Cloudflare</RootNamespace>
+    <RootNamespace>CloudflareSolverRe</RootNamespace>
     <PackageIconUrl>https://i.imgur.com/1kOksXx.png</PackageIconUrl>
     <Version>1.2.0</Version>
     <Authors>Zaczero (Kamil Monicz)</Authors>
