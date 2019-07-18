@@ -3,7 +3,6 @@ using CloudflareSolverRe.Constants;
 using CloudflareSolverRe.Exceptions;
 using CloudflareSolverRe.Extensions;
 using CloudflareSolverRe.Types;
-using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -106,7 +105,10 @@ namespace CloudflareSolverRe
 
             var response = await SendRequestAsync(request, cancellationToken);
 
-            var result = await TryClearanceIfRequired(request, response, cancellationToken);
+            var result = default(SolveResult);
+
+            if (CloudflareDetector.IsClearanceRequired(response))
+                result = await TryClearance(request, cancellationToken);
             
             if (result.Success)
             {
@@ -153,7 +155,7 @@ namespace CloudflareSolverRe
             return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<SolveResult> TryClearanceIfRequired(HttpRequestMessage request, HttpResponseMessage response, CancellationToken cancellationToken) =>
+        private async Task<SolveResult> TryClearance(HttpRequestMessage request, CancellationToken cancellationToken) =>
             await _cloudflareSolver.Solve(_client, _handler, request.RequestUri, cancellationToken: cancellationToken);
 
         private void InjectSetCookieHeader(HttpResponseMessage response, SessionCookies oldSessionCookies)

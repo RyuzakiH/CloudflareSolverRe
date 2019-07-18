@@ -30,13 +30,10 @@ namespace CloudflareSolverRe.Types
         {
             return new SessionCookies
             {
-                Cfduid = GetCookie(cookieContainer, uri, IdCookieName),
-                Cf_Clearance = GetCookie(cookieContainer, uri, ClearanceCookieName)
+                Cfduid = cookieContainer.GetCookie(uri, IdCookieName),
+                Cf_Clearance = cookieContainer.GetCookie(uri, ClearanceCookieName)
             };
-        }
-
-        private static Cookie GetCookie(CookieContainer cookieContainer, Uri uri, string name) =>
-            cookieContainer.GetCookiesByName(uri, name).FirstOrDefault();
+        }        
 
         public override bool Equals(object obj) => Equals(obj as SessionCookies);
 

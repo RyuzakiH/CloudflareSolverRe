@@ -20,8 +20,11 @@ namespace CloudflareSolverRe
                 .Any(i => i.Product != null
                     && CloudFlareServerNames.Any(s => string.Compare(s, i.Product.Name, StringComparison.OrdinalIgnoreCase).Equals(0)));
 
+        public static bool IsErrorStatusCode(HttpResponseMessage response) =>
+            !response.StatusCode.Equals(HttpStatusCode.ServiceUnavailable) || !response.StatusCode.Equals(HttpStatusCode.Forbidden);
+
         public static bool IsClearanceRequired(HttpResponseMessage response) =>
-            response.StatusCode.Equals(HttpStatusCode.ServiceUnavailable) && IsCloudflareProtected(response);
+            IsErrorStatusCode(response) && IsCloudflareProtected(response);
 
 
         public static async Task<DetectResult> Detect(HttpClient httpClient, HttpClientHandler httpClientHandler, Uri targetUri, bool requireHttps = false)

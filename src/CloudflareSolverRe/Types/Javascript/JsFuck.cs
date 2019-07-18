@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using CloudflareSolverRe.Extensions;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace CloudflareSolverRe.Types.Javascript
