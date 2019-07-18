@@ -1,112 +1,119 @@
-![](https://i.imgur.com/c4FeZHz.png)
 
-## CloudflareSolver
+CloudflareSolverRe
+==================
+[![AppVeyor](https://img.shields.io/appveyor/ci/RyuzakiH/CloudflareSolverRe/master.svg?maxAge=60)](https://ci.appveyor.com/project/RyuzakiH/CloudflareSolverRe)
+[![NuGet](https://img.shields.io/nuget/v/CloudflareSolverRe.svg?maxAge=60)](https://www.nuget.org/packages/CloudflareSolverRe)
+[![NuGet](https://img.shields.io/nuget/v/CloudflareSolverRe.Captcha.svg?maxAge=60)](https://www.nuget.org/packages/CloudflareSolverRe.Captcha)
 
-![](https://img.shields.io/github/release/Zaczero/CloudflareSolver.svg)
-![](https://img.shields.io/nuget/v/CloudflareSolver.svg)
-![](https://img.shields.io/github/license/Zaczero/CloudflareSolver.svg)
+Cloudflare JavaScript & ReCaptchaV2 challenge (Under Attack Mode) solving/bypass .NET Standard library.
 
-Cloudflare JavaScript & ReCaptchaV2 challenge solving library (aka. *Under Attack Mode* bypass).
+_Reawakening of [CloudflareSolver](https://www.nuget.org/packages/CloudflareSolver) (removed) adding the capabilities ([DelegatingHandler](https://msdn.microsoft.com/en-us/library/system.net.http.delegatinghandler(v=vs.110).aspx)) of [CloudFlareUtilities](https://github.com/elcattivo/CloudFlareUtilities) (not working)._
 
-*Inspired by [CloudFlareUtilities
-](https://github.com/elcattivo/CloudFlareUtilities)*
+# Features
+- [.NET Standard 1.1](https://github.com/dotnet/standard/blob/master/docs/versions/netstandard1.1.md)
+- Two ways of solving (CloudflareSolver, ClearanceHandler)
+- Captcha challenge solving using any [captcha provider](#implement-a-captcha-provider)
 
-## Requirements
+# Install
+Full-Featured library:
 
-* This library is compiled with .NET Standard 1.3. Check full implementation support [here](https://docs.microsoft.com/en-us/dotnet/standard/net-standard)
-* To use the ReCaptchaV2 solver you must create an account on [2Captcha](http://2captcha.com/?from=6591885)
+`PM> Install-Package CloudflareSolverRe.Captcha`
 
-## Download
+Or get just javascript challenge solver without the captcha features:
 
-* https://github.com/Zaczero/CloudflareSolver/releases/latest
+`PM> Install-Package CloudflareSolverRe`
 
-## Getting started
+# Usage
 
-```cs
-////
-// If you do not want to use the ReCaptchaV2 solver simply remove the parameter
-////
-var cf = new CloudflareSolver( YOUR_2CAPTCHA_KEY );
-var uri = new Uri("https://uam.zaczero.pl/");
+CloudflareSolver Example
+
+```csharp
+
+var target = new Uri("https://uam.hitmehard.fun/HIT");
+
+/*
+// With captcha provider:
+var cf = new CloudflareSolver(new TwoCaptchaProvider("YOUR_API_KEY"))
+{
+    MaxTries = 3, // Default value is 3
+    MaxCaptchaTries = 1, // Default value is 1
+    //ClearanceDelay = 3000  // Default value is the delay time determined in challenge code (not required in captcha)
+};
+*/
+
+var cf = new CloudflareSolver
+{
+    MaxTries = 3, // Default value is 3
+    ClearanceDelay = 3000  // Default value is the delay time determined in challenge code
+};
 
 var httpClientHandler = new HttpClientHandler();
 var httpClient = new HttpClient(httpClientHandler);
+httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0");
 
-var result = cf.Solve(httpClient, httpClientHandler, uri).Result;
+var result = cf.Solve(httpClient, httpClientHandler, target).Result;
 if (result.Success)
 {
-    Console.WriteLine($"Success! Protection bypassed: {result.DetectResult.Protection}");
+    Console.WriteLine($"[Success] Protection bypassed: {result.DetectResult.Protection}");
 }
 else
 {
-    Console.WriteLine($"Fail :( => Reason: {result.FailReason}");
+    Console.WriteLine($"[Failed] Details: {result.FailReason}");
     return;
 }
 
-////
 // Once the protection has been bypassed we can use that httpClient to send the requests as usual
-////
-var response = httpClient.GetAsync(uri).Result;
+var response = httpClient.GetAsync(target).Result;
 var html = response.Content.ReadAsStringAsync().Result;
 
-Console.WriteLine($"Real response: {html}");
+Console.WriteLine($"Server response: {html}");
 ```
 
-## Donate ❤️
+ClearanceHandler Example
 
-* BTC: `1NjW3K26ZPZeveW4st4sC249MfyW2w5ZP8`
-* ETH: `0x56b4ED755b7bDD75A954e168EB96f4501F75342d`
+```csharp
 
-Thanks for your support!
+var target = new Uri("https://uam.hitmehard.fun/HIT");
 
-## License
-### CloudflareSolver
+/*
+// With captcha provider:
+var handler = new ClearanceHandler(new TwoCaptchaProvider("YOUR_API_KEY"))
+{
+    MaxTries = 3, // Default value is 3
+    MaxCaptchaTries = 2, // Default value is 1
+    //ClearanceDelay = 3000  // Default value is the delay time determined in challenge code (not required in captcha)
+};
+*/
 
-MIT License
+var handler = new ClearanceHandler
+{
+    MaxTries = 3, // Default value is 3
+    ClearanceDelay = 3000 // Default value is the delay time determined in challenge code
+};
 
-Copyright (c) 2019 Kamil Monicz
+var client = new HttpClient(handler);
+client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0");
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+try
+{
+    var content = client.GetStringAsync(target).Result;
+    Console.WriteLine(content);
+}
+catch (AggregateException ex) when (ex.InnerException is CloudFlareClearanceException)
+{
+    // After all retries, clearance still failed.
+    Console.WriteLine(ex.InnerException.Message);
+}
+catch (AggregateException ex) when (ex.InnerException is TaskCanceledException)
+{
+    // Looks like we ran into a timeout. Too many clearance attempts?
+    // Maybe you should increase client.Timeout as each attempt will take about five seconds.
+}
+```
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+Full Samples [Here](https://github.com/RyuzakiH/Temp-Mail-API/blob/master/sample/CloudflareSolverRe.Sample)
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+# Implement a Captcha Provider
+Implement [ICaptchaProvider](https://github.com/RyuzakiH/Temp-Mail-API/blob/master/src/CloudflareSolverRe/Types/Captcha/ICaptchaProvider.cs) interface.
 
-### Newtonsoft.Json ([GitHub](https://github.com/JamesNK/Newtonsoft.Json))
-
-The MIT License (MIT)
-
-Copyright (c) 2007 James Newton-King
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-### Jint ([GitHub](https://github.com/sebastienros/jint))
-
-BSD 2-Clause License
-
-Copyright (c) 2013, Sebastien Ros
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-
-1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-
-2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+Example [AntiCaptchaProvider](https://github.com/RyuzakiH/Temp-Mail-API/blob/master/src/CloudflareSolverRe.Captcha/AntiCaptchaProvider.cs)
