@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CloudflareSolverRe.Constants;
+using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -26,27 +27,27 @@ namespace CloudflareSolverRe
         {
             if (headers.Host == null)
                 headers.Host = siteUrl.Host;
-
+            // TODO: Random UserAgent
             if (!headers.UserAgent.Any())
-                headers.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0");
+                headers.UserAgent.ParseAdd(UserAgents.Firefox66_Win10);
 
             if (!headers.Accept.Any())
-                headers.TryAddWithoutValidation("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+                headers.TryAddWithoutValidation(Constants.HttpHeaders.Accept, HttpHeaderValues.HtmlXmlAll);
 
             if (!headers.AcceptLanguage.Any())
-                headers.TryAddWithoutValidation("Accept-Language", "en-US,en;q=0.5");
+                headers.TryAddWithoutValidation(Constants.HttpHeaders.AcceptLanguage, HttpHeaderValues.En_Us);
 
             if (headers.Referrer == null && referrer != null)
                 headers.Referrer = referrer;
 
             if (!headers.Connection.Any())
-                headers.Connection.ParseAdd("keep-alive");
+                headers.Connection.ParseAdd(HttpHeaderValues.KeepAlive);
 
-            //if (!headers.Contains("DNT"))
-            //    headers.Add("DNT", "1");
+            //if (!headers.Contains(Constants.HttpHeaders.DNT))
+            //    headers.Add(Constants.HttpHeaders.DNT, "1");
 
-            if (!headers.Contains("Upgrade-Insecure-Requests"))
-                headers.Add("Upgrade-Insecure-Requests", "1");
+            if (!headers.Contains(Constants.HttpHeaders.UpgradeInsecureRequests))
+                headers.Add(Constants.HttpHeaders.UpgradeInsecureRequests, "1");
         }
 
         protected static HttpRequestMessage CreateRequest(Uri targetUri, [Optional]Uri referrer)

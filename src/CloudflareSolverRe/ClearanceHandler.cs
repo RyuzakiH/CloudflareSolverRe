@@ -90,11 +90,7 @@ namespace CloudflareSolverRe
                 CookieContainer = _cookies = new CookieContainer()
             });
 
-            _cloudflareSolver = new CloudflareSolver(captchaProvider)
-            {
-                //MaxTries = 1,
-                //ClearanceDelay = ClearanceDelay
-            };
+            _cloudflareSolver = new CloudflareSolver(captchaProvider);
         }
 
 
@@ -127,7 +123,7 @@ namespace CloudflareSolverRe
         private static void EnsureHeaders(HttpRequestMessage request)
         {
             if (!request.Headers.UserAgent.Any())
-                request.Headers.Add("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36");
+                request.Headers.Add(HttpHeaders.UserAgent, UserAgents.Firefox66_Win10);
         }
 
         private void InjectCookies(HttpRequestMessage request)

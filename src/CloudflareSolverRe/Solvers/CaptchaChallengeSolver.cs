@@ -14,6 +14,9 @@ namespace CloudflareSolverRe.Solvers
     {
         private readonly ICaptchaProvider captchaProvider;
 
+        private bool CaptchaSolvingEnabled => captchaProvider != null;
+
+
         public CaptchaChallengeSolver(HttpClient client, HttpClientHandler handler, Uri siteUrl, DetectResult detectResult, ICaptchaProvider captchaProvider)
             : base(client, handler, siteUrl, detectResult)
         {
@@ -27,12 +30,9 @@ namespace CloudflareSolverRe.Solvers
         }
 
 
-        private bool IsCaptchaSolvingEnabled() => captchaProvider != null;
-
-
         public new async Task<SolveResult> Solve()
         {
-            if (!IsCaptchaSolvingEnabled())
+            if (!CaptchaSolvingEnabled)
             {
                 return new SolveResult
                 {

@@ -35,9 +35,9 @@ namespace CloudflareSolverRe.Sample
             //var target = new Uri("https://www.spacetorrent.cloud/");
             //var target = new Uri("https://github.com/RyuzakiH");
             
-            var handler = new ClearanceHandler
+            var handler = new ClearanceHandler(new TwoCaptchaProvider("07b733e590db758b7adff0aea61c545f"))
             {
-                //MaxRetries = 3,
+                MaxTries = 2,
                 ClearanceDelay = 3000
             };
 

@@ -1,6 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using CloudflareSolverRe.Constants;
+using System;
 
 namespace CloudflareSolverRe.Extensions
 {
@@ -11,7 +10,7 @@ namespace CloudflareSolverRe.Extensions
             var newUri = new UriBuilder(uri);
 
             var hadDefaultPort = newUri.Uri.IsDefaultPort;
-            newUri.Scheme = "http";
+            newUri.Scheme = General.UriSchemeHttp;
             newUri.Port = hadDefaultPort ? -1 : newUri.Port;
 
             return newUri.Uri;
@@ -22,7 +21,7 @@ namespace CloudflareSolverRe.Extensions
             var newUri = new UriBuilder(uri);
 
             var hadDefaultPort = newUri.Uri.IsDefaultPort;
-            newUri.Scheme = "https";
+            newUri.Scheme = General.UriSchemeHttps;
             newUri.Port = hadDefaultPort ? -1 : newUri.Port;
 
             return newUri.Uri;

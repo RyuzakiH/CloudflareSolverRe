@@ -1,4 +1,5 @@
 ﻿using CloudflareSolverRe.CaptchaProviders;
+using CloudflareSolverRe.Constants;
 using CloudflareSolverRe.Extensions;
 using CloudflareSolverRe.Solvers;
 using CloudflareSolverRe.Types;
@@ -187,16 +188,18 @@ namespace CloudflareSolverRe
             else if (captchaDetectResult.Value.Protection.Equals(CloudflareProtection.Captcha))
                 result = await new CaptchaChallengeSolver(_httpClient, _httpClientHandler, _siteUrl, captchaDetectResult.Value, captchaProvider)
                     .Solve();
-
+            else if (captchaDetectResult.Value.Protection.Equals(CloudflareProtection.JavaScript))
+                result = await SolveJavascriptChallenge(captchaDetectResult);
+                
             return result;
         }
 
 
         private Uri ChangeUrlScheme(Uri uri, bool supportsHttp)
         {
-            if (!supportsHttp && uri.Scheme.Equals("http"))
+            if (!supportsHttp && uri.Scheme.Equals(General.UriSchemeHttp))
                 uri = uri.ForceHttps();
-            else if (supportsHttp && uri.Scheme.Equals("https"))
+            else if (supportsHttp && uri.Scheme.Equals(General.UriSchemeHttps))
                 uri = uri.ForceHttp();
 
             return uri;
