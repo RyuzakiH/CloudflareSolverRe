@@ -1,7 +1,6 @@
 
 CloudflareSolverRe
 ==================
-[![AppVeyor](https://img.shields.io/appveyor/ci/RyuzakiH/CloudflareSolverRe/master.svg?maxAge=60)](https://ci.appveyor.com/project/RyuzakiH/CloudflareSolverRe)
 [![NuGet](https://img.shields.io/nuget/v/CloudflareSolverRe.svg?maxAge=60)](https://www.nuget.org/packages/CloudflareSolverRe)
 [![NuGet](https://img.shields.io/nuget/v/CloudflareSolverRe.Captcha.svg?maxAge=60)](https://www.nuget.org/packages/CloudflareSolverRe.Captcha)
 
