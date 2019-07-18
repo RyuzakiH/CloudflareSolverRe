@@ -1,4 +1,5 @@
 ﻿using CloudflareSolverRe.CaptchaProviders;
+using CloudflareSolverRe.Constants;
 using CloudflareSolverRe.Types;
 using CloudflareSolverRe.Types.Captcha;
 using System;
@@ -36,7 +37,7 @@ namespace CloudflareSolverRe.Solvers
                 return new SolveResult
                 {
                     Success = false,
-                    FailReason = "Missing captcha provider",
+                    FailReason = Errors.MissingCaptchaProvider,
                     DetectResult = DetectResult,
                 };
             }
@@ -73,12 +74,12 @@ namespace CloudflareSolverRe.Solvers
 
             if (response.StatusCode.Equals(HttpStatusCode.Found))
             {
-                var success = response.Headers.Contains("Set-Cookie");
-                return new SolveResult(success, LayerCaptcha, success ? null : "response cookie not found", DetectResult, response);
+                var success = response.Headers.Contains(HttpHeaders.SetCookie);
+                return new SolveResult(success, LayerCaptcha, success ? null : Errors.ClearanceCookieNotFound, DetectResult, response);
             }
             else
             {
-                return new SolveResult(false, LayerCaptcha, "something wrong happened", DetectResult, response); //"invalid submit response"
+                return new SolveResult(false, LayerCaptcha, Errors.SomethingWrongHappened, DetectResult, response); //"invalid submit response"
             }
         }
 

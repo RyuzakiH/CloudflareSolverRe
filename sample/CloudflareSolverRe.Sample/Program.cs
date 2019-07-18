@@ -33,11 +33,12 @@ namespace CloudflareSolverRe.Sample
 
             var target = new Uri("https://uam.hitmehard.fun/HIT");
             //var target = new Uri("https://www.spacetorrent.cloud/");
-
+            //var target = new Uri("https://github.com/RyuzakiH");
+            
             var handler = new ClearanceHandler
             {
                 //MaxRetries = 3,
-                //ClearanceDelay = 3000
+                ClearanceDelay = 3000
             };
 
             var client = new HttpClient(handler);
@@ -45,8 +46,8 @@ namespace CloudflareSolverRe.Sample
             
             try
             {
-                //var content = client.GetStringAsync(target).Result;
-                //Console.WriteLine(content);
+                var content = client.GetStringAsync(target).Result;
+                Console.WriteLine(content);
             }
             catch (AggregateException ex) when (ex.InnerException is CloudFlareClearanceException)
             {
@@ -62,7 +63,7 @@ namespace CloudflareSolverRe.Sample
 
             var cf = new CloudflareSolver
             {
-                MaxRetries = 3
+                MaxTries = 3
             };
             //CookieContainer cookies = new CookieContainer();
             var httpClientHandler = new HttpClientHandler

@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+﻿using CloudflareSolverRe.Constants;
+using System.Net.Http;
 using System.Runtime.InteropServices;
 
 namespace CloudflareSolverRe.Types
@@ -14,19 +15,18 @@ namespace CloudflareSolverRe.Types
         public static SolveResult NoProtection = new SolveResult
         {
             Success = true,
-            FailReason = "No protection detected",
         };
 
         public static SolveResult Banned = new SolveResult
         {
             Success = false,
-            FailReason = "IP address is banned",
+            FailReason = Errors.IpAddressIsBanned,
         };
 
         public static SolveResult Unknown = new SolveResult
         {
             Success = false,
-            FailReason = "Unknown protection detected",
+            FailReason = Errors.UnknownProtectionDetected,
         };
 
         public SolveResult(bool success, string layer, string failReason, DetectResult detectResult, [Optional]HttpResponseMessage response)

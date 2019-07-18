@@ -1,4 +1,6 @@
-﻿using CloudflareSolverRe.Exceptions;
+﻿using CloudflareSolverRe.CaptchaProviders;
+using CloudflareSolverRe.Constants;
+using CloudflareSolverRe.Exceptions;
 using CloudflareSolverRe.Extensions;
 using CloudflareSolverRe.Types;
 using System;
@@ -16,13 +18,8 @@ namespace CloudflareSolverRe
     /// <remarks>
     /// Only the JavaScript challenge can be handled. CAPTCHA and IP address blocking cannot be bypassed.
     /// </remarks>
-    public class ClearanceHandler : DelegatingHandler, IClearanceDelayable, IRetriable
+    public class ClearanceHandler : DelegatingHandler, ICloudflareSolver
     {
-        /// <summary>
-        /// The default number of retries, if clearance fails.
-        /// </summary>
-        public static readonly int DefaultMaxRetries = 3;
-
         private readonly CookieContainer _cookies;
         private readonly HttpClient _client;
         private readonly HttpClientHandler _handler;
@@ -32,7 +29,20 @@ namespace CloudflareSolverRe
         /// Gets or sets the number of clearance retries, if clearance fails.
         /// </summary>
         /// <remarks>A negative value causes an infinite amount of retries.</remarks>
-        public int MaxRetries { get; set; } = DefaultMaxRetries;
+        public int MaxTries
+        {
+            get => _cloudflareSolver.MaxTries;
+            set => _cloudflareSolver.MaxTries = value;
+        }
+
+        /// <summary>
+        /// Gets or sets the max number of captcha clearance tries.
+        /// </summary>
+        public int MaxCaptchaTries
+        {
+            get => _cloudflareSolver.MaxCaptchaTries;
+            set => _cloudflareSolver.MaxCaptchaTries = value;
+        }
 
         /// <summary>
         /// Gets or sets the number of milliseconds to wait before sending the clearance request.
@@ -40,7 +50,11 @@ namespace CloudflareSolverRe
         /// <remarks>
         /// Negative value or zero means to wait the delay time required by the challenge (like a browser).
         /// </remarks>
-        public int ClearanceDelay { get; set; }
+        public int ClearanceDelay
+        {
+            get => _cloudflareSolver.ClearanceDelay;
+            set => _cloudflareSolver.ClearanceDelay = value;
+        }
 
         private HttpClientHandler HttpClientHandler => InnerHandler.GetMostInnerHandler() as HttpClientHandler;
 
@@ -54,7 +68,20 @@ namespace CloudflareSolverRe
         /// Creates a new instance of the <see cref="ClearanceHandler"/> class with a specific inner handler.
         /// </summary>
         /// <param name="innerHandler">The inner handler which is responsible for processing the HTTP response messages.</param>
-        public ClearanceHandler(HttpMessageHandler innerHandler) : base(innerHandler)
+        public ClearanceHandler(HttpMessageHandler innerHandler) : this(innerHandler, null) { }
+
+        /// <summary>
+        /// Creates a new instance of the <see cref="ClearanceHandler"/> class with a captcha provider.
+        /// </summary>
+        /// <param name="captchaProvider">The captcha provider which is responsible for solving captcha challenges.</param>
+        public ClearanceHandler(ICaptchaProvider captchaProvider) : this(new HttpClientHandler(), captchaProvider) { }
+
+        /// <summary>
+        /// Creates a new instance of the <see cref="ClearanceHandler"/> class with a specific inner handler and a captcha provider.
+        /// </summary>
+        /// <param name="innerHandler">The inner handler which is responsible for processing the HTTP response messages.</param>
+        /// <param name="captchaProvider">The captcha provider which is responsible for solving captcha challenges.</param>
+        public ClearanceHandler(HttpMessageHandler innerHandler, ICaptchaProvider captchaProvider) : base(innerHandler)
         {
             _client = new HttpClient(_handler = new HttpClientHandler
             {
@@ -63,10 +90,10 @@ namespace CloudflareSolverRe
                 CookieContainer = _cookies = new CookieContainer()
             });
 
-            _cloudflareSolver = new CloudflareSolver
+            _cloudflareSolver = new CloudflareSolver(captchaProvider)
             {
-                MaxRetries = 1,
-                ClearanceDelay = ClearanceDelay
+                //MaxTries = 1,
+                //ClearanceDelay = ClearanceDelay
             };
         }
 
@@ -84,7 +111,7 @@ namespace CloudflareSolverRe
             var response = await SendRequestAsync(request, cancellationToken);
 
             var result = await TryClearanceIfRequired(request, response, cancellationToken);
-
+            
             if (result.Success)
             {
                 response = await SendRequestAsync(request, cancellationToken);
@@ -92,7 +119,7 @@ namespace CloudflareSolverRe
             }
 
             if (!result.Success && CloudflareDetector.IsClearanceRequired(response))
-                throw new CloudFlareClearanceException(MaxRetries);
+                throw new CloudFlareClearanceException(MaxTries);
 
             return response;
         }
@@ -117,8 +144,8 @@ namespace CloudflareSolverRe
             }
             else
             {
-                request.Headers.Add(HttpHeader.Cookie, sessionCookies.Cfduid.ToHeaderValue());
-                request.Headers.Add(HttpHeader.Cookie, sessionCookies.Cf_Clearance.ToHeaderValue());
+                request.Headers.Add(HttpHeaders.Cookie, sessionCookies.Cfduid.ToHeaderValue());
+                request.Headers.Add(HttpHeaders.Cookie, sessionCookies.Cf_Clearance.ToHeaderValue());
             }
         }
 
@@ -130,22 +157,8 @@ namespace CloudflareSolverRe
             return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<SolveResult> TryClearanceIfRequired(HttpRequestMessage request, HttpResponseMessage response, CancellationToken cancellationToken)
-        {
-            var result = default(SolveResult);
-
-            for (int retries = 0; CloudflareDetector.IsClearanceRequired(response) && (MaxRetries < 0 || retries <= MaxRetries); retries++)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                result = await _cloudflareSolver.Solve(_client, _handler, request.RequestUri);
-
-                if (result.Success)
-                    break;
-            }
-
-            return result;
-        }
+        private async Task<SolveResult> TryClearanceIfRequired(HttpRequestMessage request, HttpResponseMessage response, CancellationToken cancellationToken) =>
+            await _cloudflareSolver.Solve(_client, _handler, request.RequestUri, cancellationToken: cancellationToken);
 
         private void InjectSetCookieHeader(HttpResponseMessage response, SessionCookies oldSessionCookies)
         {
@@ -157,11 +170,11 @@ namespace CloudflareSolverRe
             // inject set-cookie headers in case the cookies changed
             if (newSessionCookies.Cfduid != null && newSessionCookies.Cfduid != oldSessionCookies.Cfduid)
             {
-                response.Headers.Add(HttpHeader.SetCookie, newSessionCookies.Cfduid.ToHeaderValue());
+                response.Headers.Add(HttpHeaders.SetCookie, newSessionCookies.Cfduid.ToHeaderValue());
             }
             if (newSessionCookies.Cf_Clearance != null && newSessionCookies.Cf_Clearance != oldSessionCookies.Cf_Clearance)
             {
-                response.Headers.Add(HttpHeader.SetCookie, newSessionCookies.Cf_Clearance.ToHeaderValue());
+                response.Headers.Add(HttpHeaders.SetCookie, newSessionCookies.Cf_Clearance.ToHeaderValue());
             }
         }
 

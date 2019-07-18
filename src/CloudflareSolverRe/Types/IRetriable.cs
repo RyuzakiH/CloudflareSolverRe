@@ -2,6 +2,6 @@
 {
     public interface IRetriable
     {
-        int MaxRetries { get; set; }
+        int MaxTries { get; set; }
     }
 }

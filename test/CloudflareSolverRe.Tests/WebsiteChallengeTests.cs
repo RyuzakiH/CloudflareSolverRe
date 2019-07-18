@@ -13,11 +13,13 @@ namespace CloudflareSolverRe.Tests
         {
             var cf = new CloudflareSolver
             {
-                MaxRetries = 3
+                MaxTries = 3,
+                ClearanceDelay = 3000
             };
 
             var httpClientHandler = new HttpClientHandler();
             var httpClient = new HttpClient(httpClientHandler);
+            httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0");
 
             var uri = new Uri("https://uam.hitmehard.fun/HIT");
 
@@ -36,7 +38,7 @@ namespace CloudflareSolverRe.Tests
         {
             var cf = new CloudflareSolver(new AntiCaptchaProvider("YOUR_API_KEY"))
             {
-                MaxRetries = 1
+                MaxTries = 1
             };
 
             var httpClientHandler = new HttpClientHandler();
@@ -59,7 +61,7 @@ namespace CloudflareSolverRe.Tests
         {
             var cf = new CloudflareSolver(new TwoCaptchaProvider("YOUR_API_KEY"))
             {
-                MaxRetries = 1
+                MaxTries = 1
             };
 
             var httpClientHandler = new HttpClientHandler();

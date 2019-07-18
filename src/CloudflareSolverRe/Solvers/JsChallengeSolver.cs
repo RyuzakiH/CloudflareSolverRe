@@ -1,4 +1,5 @@
-﻿using CloudflareSolverRe.Types;
+﻿using CloudflareSolverRe.Constants;
+using CloudflareSolverRe.Types;
 using CloudflareSolverRe.Types.Javascript;
 using System;
 using System.Net;
@@ -24,12 +25,13 @@ namespace CloudflareSolverRe.Solvers
         {
             var solution = await SolveChallenge(DetectResult.Html);
 
-            if (!solution.Success && solution.FailReason.Contains("captcha"))
+            if (!solution.Success && solution.FailReason.Contains("Captcha"))
             {
                 solution.NewDetectResult = new DetectResult
                 {
                     Protection = CloudflareProtection.Captcha,
-                    Html = await solution.Response.Content.ReadAsStringAsync()
+                    Html = await solution.Response.Content.ReadAsStringAsync(),
+                    SupportsHttp = DetectResult.SupportsHttp
                 };
             }
 
@@ -58,16 +60,16 @@ namespace CloudflareSolverRe.Solvers
 
             if (response.StatusCode == HttpStatusCode.Found)
             {
-                var success = response.Headers.Contains("Set-Cookie");
-                return new SolveResult(success, LayerJavaScript, success ? null : "response cookie not found", DetectResult, response); // "invalid submit response"
+                var success = response.Headers.Contains(HttpHeaders.SetCookie);
+                return new SolveResult(success, LayerJavaScript, success ? null : Errors.ClearanceCookieNotFound, DetectResult, response); // "invalid submit response"
             }
             else if (response.StatusCode == HttpStatusCode.Forbidden) // Captcha
             {
-                return new SolveResult(false, LayerCaptcha, "captcha solver required", DetectResult, response);
+                return new SolveResult(false, LayerCaptcha, Errors.CaptchaSolverRequired, DetectResult, response);
             }
             else
             {
-                return new SolveResult(false, LayerJavaScript, "something wrong happened", DetectResult, response);
+                return new SolveResult(false, LayerJavaScript, Errors.SomethingWrongHappened, DetectResult, response);
             }
         }
 

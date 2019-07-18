@@ -1,6 +1,6 @@
-﻿namespace CloudflareSolverRe.Types
+﻿namespace CloudflareSolverRe.Constants
 {
-    internal static class HttpHeader
+    internal static class HttpHeaders
     {
         public const string UserAgent = "User-Agent";
 
