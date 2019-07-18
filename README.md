@@ -14,7 +14,7 @@ _Reawakening of [CloudflareSolver](https://www.nuget.org/packages/CloudflareSolv
 - Two ways of solving (CloudflareSolver, ClearanceHandler)
 - Captcha challenge solving using any [captcha provider](#implement-a-captcha-provider)
 
-# Install
+# Installation
 Full-Featured library:
 
 `PM> Install-Package CloudflareSolverRe.Captcha`
