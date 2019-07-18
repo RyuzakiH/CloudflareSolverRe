@@ -14,7 +14,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\CloudflareSolverRe.Captcha\CloudflareSolverRe.Captcha.csproj" />
-    <ProjectReference Include="..\..\src\CloudflareSolverRe\CloudflareSolverRe.csproj" />
   </ItemGroup>
 
 </Project>
