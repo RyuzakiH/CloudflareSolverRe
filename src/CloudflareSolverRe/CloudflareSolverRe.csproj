@@ -3,22 +3,18 @@
   <PropertyGroup>
     <TargetFramework>netstandard1.1</TargetFramework>
     <RootNamespace>CloudflareSolverRe</RootNamespace>
-    <PackageIconUrl>https://i.imgur.com/1kOksXx.png</PackageIconUrl>
-    <Version>1.2.0</Version>
-    <Authors>Zaczero (Kamil Monicz)</Authors>
-    <Company>Zaczero (Kamil Monicz)</Company>
-    <Description>Cloudflare JavaScript &amp; ReCaptchaV2 challenge solving library (aka. *Under Attack Mode* bypass).</Description>
-    <Copyright>Copyright (c) Zaczero (Kamil Monicz) 2019</Copyright>
-    <PackageLicenseUrl>https://github.com/Zaczero/CloudflareSolver/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/Zaczero/CloudflareSolver</PackageProjectUrl>
-    <AssemblyVersion>1.2.0.0</AssemblyVersion>
-    <FileVersion>1.2.0.0</FileVersion>
-    <PackageTags>cloudflare, under, attack, mode, uam, solver, solving, library, cloudflaresolver, resolver, recaptchav2, recaptcha, captcha, nodejs, javascript, challenge, 2captcha, utilities</PackageTags>
+    <PackageIconUrl></PackageIconUrl>
+    <Version>1.0.0</Version>
+    <Authors>Zaczero, RyuzakiH</Authors>
+    <Company></Company>
+    <Description>Cloudflare JavaScript &amp; ReCaptchaV2 challenge (Under Attack Mode) solving/bypass .NET Standard library.</Description>
+    <Copyright></Copyright>
+    <PackageLicenseUrl>https://github.com/RyuzakiH/CloudflareSolverRe/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/RyuzakiH/CloudflareSolverRe</PackageProjectUrl>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <PackageTags>cloudflare, solver, bypass, protection, solving, library, cloudflaresolver, delegatinghandler, recaptcha, captcha, javascript, challenge, utilities</PackageTags>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Folder Include="Properties\" />
-  </ItemGroup>
 
 </Project>

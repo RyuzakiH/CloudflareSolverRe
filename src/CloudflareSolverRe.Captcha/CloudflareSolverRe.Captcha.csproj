@@ -2,6 +2,12 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard1.1</TargetFramework>
+    <Authors>Zaczero, RyuzakiH</Authors>
+    <Company />
+    <PackageLicenseUrl>https://github.com/RyuzakiH/CloudflareSolverRe/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/RyuzakiH/CloudflareSolverRe</PackageProjectUrl>
+    <PackageTags>cloudflare, solver, bypass, protection, solving, library, cloudflaresolver, delegatinghandler, recaptcha, captcha, javascript, challenge, utilities</PackageTags>
+    <Description>Extends CloudflareSolverRe, contains captcha providers (2Captcha, AntiCaptcha) that helps solving cloudflare captcha challenge.</Description>
   </PropertyGroup>
 
   <ItemGroup>
