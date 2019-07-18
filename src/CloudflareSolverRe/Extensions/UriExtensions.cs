@@ -3,7 +3,7 @@ using System;
 
 namespace CloudflareSolverRe.Extensions
 {
-    public static class UriExtensions
+    internal static class UriExtensions
     {
         public static Uri ForceHttp(this Uri uri)
         {

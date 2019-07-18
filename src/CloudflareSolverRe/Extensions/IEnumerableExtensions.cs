@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
-namespace System.Linq
+namespace CloudflareSolverRe.Extensions
 {
     public static class IEnumerableExtensions
     {
