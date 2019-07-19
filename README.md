@@ -12,6 +12,7 @@ _Reawakening of [CloudflareSolver](https://www.nuget.org/packages/CloudflareSolv
 - [.NET Standard 1.1](https://github.com/dotnet/standard/blob/master/docs/versions/netstandard1.1.md)
 - Two ways of solving (CloudflareSolver, ClearanceHandler)
 - Captcha challenge solving using any [captcha provider](#implement-a-captcha-provider)
+- No Javascript interpreter required
 
 # Installation
 Full-Featured library:
