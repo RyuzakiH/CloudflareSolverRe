@@ -111,9 +111,9 @@ catch (AggregateException ex) when (ex.InnerException is TaskCanceledException)
 }
 ```
 
-Full Samples [Here](https://github.com/RyuzakiH/Temp-Mail-API/blob/master/sample/CloudflareSolverRe.Sample)
+Full Samples [Here](https://github.com/RyuzakiH/CloudflareSolverRe/tree/master/sample/CloudflareSolverRe.Sample)
 
 # Implement a Captcha Provider
-Implement [ICaptchaProvider](https://github.com/RyuzakiH/Temp-Mail-API/blob/master/src/CloudflareSolverRe/Types/Captcha/ICaptchaProvider.cs) interface.
+Implement [ICaptchaProvider](https://github.com/RyuzakiH/CloudflareSolverRe/blob/master/src/CloudflareSolverRe/Types/Captcha/ICaptchaProvider.cs) interface.
 
-Example [AntiCaptchaProvider](https://github.com/RyuzakiH/Temp-Mail-API/blob/master/src/CloudflareSolverRe.Captcha/AntiCaptchaProvider.cs)
+Example [AntiCaptchaProvider](https://github.com/RyuzakiH/CloudflareSolverRe/blob/master/src/CloudflareSolverRe.Captcha/AntiCaptchaProvider.cs)
