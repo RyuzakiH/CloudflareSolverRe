@@ -116,4 +116,36 @@ Full Samples [Here](https://github.com/RyuzakiH/CloudflareSolverRe/tree/master/s
 # Implement a Captcha Provider
 Implement [ICaptchaProvider](https://github.com/RyuzakiH/CloudflareSolverRe/blob/master/src/CloudflareSolverRe/Types/Captcha/ICaptchaProvider.cs) interface.
 
+```csharp
+public interface ICaptchaProvider
+{
+    string Name { get; }
+
+    Task<CaptchaSolveResult> SolveCaptcha(string siteKey, string webUrl);
+}
+```
+
 Example [AntiCaptchaProvider](https://github.com/RyuzakiH/CloudflareSolverRe/blob/master/src/CloudflareSolverRe.Captcha/AntiCaptchaProvider.cs)
+
+```csharp
+public class AntiCaptchaProvider : ICaptchaProvider
+{
+    public string Name { get; } = "AntiCaptcha";
+
+    private readonly AntiCaptcha antiCaptcha;
+
+    public AntiCaptchaProvider(string apiKey) => antiCaptcha = new AntiCaptcha(apiKey);
+
+    public async Task<CaptchaSolveResult> SolveCaptcha(string siteKey, string webUrl)
+    {
+        var result = await antiCaptcha.SolveReCaptchaV2(siteKey, webUrl);
+
+        return new CaptchaSolveResult
+        {
+            Success = result.Success,
+            Response = result.Response,
+        };
+    }
+}
+```
+
