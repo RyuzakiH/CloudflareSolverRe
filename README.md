@@ -1,4 +1,3 @@
-
 CloudflareSolverRe
 ==================
 [![NuGet](https://img.shields.io/nuget/v/CloudflareSolverRe.svg?maxAge=60)](https://www.nuget.org/packages/CloudflareSolverRe)
@@ -25,21 +24,101 @@ Or get just javascript challenge solver without the captcha features:
 
 # Usage
 
-CloudflareSolver Example
+- ### ClearanceHandler
+
+A [DelegatingHandler](https://docs.microsoft.com/en-us/dotnet/api/system.net.http.delegatinghandler?view=netstandard-1.1) that
+handles the challenge solution.
+
+> A type for HTTP handlers that delegate the processing of HTTP response messages to another handler, called the inner handler.
+
+It checks on every request if the clearance is required or not, if required, it solves the challenge in background then returns the response.
 
 ```csharp
 
 var target = new Uri("https://uam.hitmehard.fun/HIT");
 
-/*
-// With captcha provider:
-var cf = new CloudflareSolver(new TwoCaptchaProvider("YOUR_API_KEY"))
+var handler = new ClearanceHandler
 {
     MaxTries = 3, // Default value is 3
-    MaxCaptchaTries = 1, // Default value is 1
+    ClearanceDelay = 3000 // Default value is the delay time determined in challenge code
+};
+
+var client = new HttpClient(handler);
+client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0");
+
+try
+{
+    var content = client.GetStringAsync(target).Result;
+    Console.WriteLine(content);
+}
+catch (AggregateException ex) when (ex.InnerException is CloudFlareClearanceException)
+{
+    // After all retries, clearance still failed.
+    Console.WriteLine(ex.InnerException.Message);
+}
+catch (AggregateException ex) when (ex.InnerException is TaskCanceledException)
+{
+    // Looks like we ran into a timeout. Too many clearance attempts?
+    // Maybe you should increase client.Timeout as each attempt will take about five seconds.
+}
+```
+
+With Captcha Provider
+
+```csharp
+
+var handler = new ClearanceHandler(new TwoCaptchaProvider("YOUR_API_KEY"))
+{
+    MaxTries = 3, // Default value is 3
+    MaxCaptchaTries = 2, // Default value is 1
     //ClearanceDelay = 3000  // Default value is the delay time determined in challenge code (not required in captcha)
 };
-*/
+
+```
+
+To provide an inner handler, there are two ways
+
+1. By setting the InnerHandler property of the ClearanceHandler:
+
+```csharp
+var handler = new ClearanceHandler
+{
+    InnerHandler = new HttpClientHandler
+    {
+        CookieContainer = cookieContainer,
+        AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+        Proxy = proxy
+    },
+    MaxTries = 5,
+    ClearanceDelay = 3000
+};
+```
+
+2. By passing the inner handler to the constructor of the ClearanceHandler.
+
+```csharp
+var httpHandler = new HttpClientHandler
+{
+    CookieContainer = cookieContainer,
+    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+    Proxy = proxy
+};
+
+var handler = new ClearanceHandler(httpHandler)
+{
+    MaxTries = 5,
+    ClearanceDelay = 3000
+};
+```
+
+
+- ### CloudflareSolver
+
+The internal challenge solver, that's what happens inside the ClearanceHandler, you can use it directly.
+
+```csharp
+
+var target = new Uri("https://uam.hitmehard.fun/HIT");
 
 var cf = new CloudflareSolver
 {
@@ -69,46 +148,17 @@ var html = response.Content.ReadAsStringAsync().Result;
 Console.WriteLine($"Server response: {html}");
 ```
 
-ClearanceHandler Example
+With Captcha Provider
 
 ```csharp
 
-var target = new Uri("https://uam.hitmehard.fun/HIT");
-
-/*
-// With captcha provider:
-var handler = new ClearanceHandler(new TwoCaptchaProvider("YOUR_API_KEY"))
+var cf = new CloudflareSolver(new TwoCaptchaProvider("YOUR_API_KEY"))
 {
     MaxTries = 3, // Default value is 3
-    MaxCaptchaTries = 2, // Default value is 1
+    MaxCaptchaTries = 1, // Default value is 1
     //ClearanceDelay = 3000  // Default value is the delay time determined in challenge code (not required in captcha)
 };
-*/
 
-var handler = new ClearanceHandler
-{
-    MaxTries = 3, // Default value is 3
-    ClearanceDelay = 3000 // Default value is the delay time determined in challenge code
-};
-
-var client = new HttpClient(handler);
-client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0");
-
-try
-{
-    var content = client.GetStringAsync(target).Result;
-    Console.WriteLine(content);
-}
-catch (AggregateException ex) when (ex.InnerException is CloudFlareClearanceException)
-{
-    // After all retries, clearance still failed.
-    Console.WriteLine(ex.InnerException.Message);
-}
-catch (AggregateException ex) when (ex.InnerException is TaskCanceledException)
-{
-    // Looks like we ran into a timeout. Too many clearance attempts?
-    // Maybe you should increase client.Timeout as each attempt will take about five seconds.
-}
 ```
 
 Full Samples [Here](https://github.com/RyuzakiH/CloudflareSolverRe/tree/master/sample/CloudflareSolverRe.Sample)
@@ -148,4 +198,3 @@ public class AntiCaptchaProvider : ICaptchaProvider
     }
 }
 ```
-
