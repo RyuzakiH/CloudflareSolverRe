@@ -117,7 +117,7 @@ namespace CloudflareSolverRe
             }
 
             if (!result.Success && CloudflareDetector.IsClearanceRequired(response))
-                throw new CloudFlareClearanceException(MaxTries);
+                throw new CloudflareClearanceException(MaxTries);
 
             return response;
         }

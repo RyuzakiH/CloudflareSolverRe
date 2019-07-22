@@ -27,7 +27,7 @@ namespace CloudflareSolverRe.Sample
                 var content = client.GetStringAsync(target).Result;
                 Console.WriteLine(content);
             }
-            catch (AggregateException ex) when (ex.InnerException is CloudFlareClearanceException)
+            catch (AggregateException ex) when (ex.InnerException is CloudflareClearanceException)
             {
                 // After all retries, clearance still failed.
                 Console.WriteLine(ex.InnerException.Message);
@@ -59,7 +59,7 @@ namespace CloudflareSolverRe.Sample
                 var content = client.GetStringAsync(target).Result;
                 Console.WriteLine(content);
             }
-            catch (AggregateException ex) when (ex.InnerException is CloudFlareClearanceException)
+            catch (AggregateException ex) when (ex.InnerException is CloudflareClearanceException)
             {
                 // After all retries, clearance still failed.
                 Console.WriteLine(ex.InnerException.Message);
@@ -91,7 +91,7 @@ namespace CloudflareSolverRe.Sample
                 var content = client.GetStringAsync(target).Result;
                 Console.WriteLine(content);
             }
-            catch (AggregateException ex) when (ex.InnerException is CloudFlareClearanceException)
+            catch (AggregateException ex) when (ex.InnerException is CloudflareClearanceException)
             {
                 // After all retries, clearance still failed.
                 Console.WriteLine(ex.InnerException.Message);

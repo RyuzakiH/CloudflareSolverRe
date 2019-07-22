@@ -65,5 +65,23 @@ namespace CloudflareSolverRe.Tests
             var content = client.GetStringAsync(target).Result;
             Assert.AreEqual("Dstat.cc is the best", content);
         }
+
+        [TestMethod]
+        public void SolveWebsiteChallenge_github()
+        {
+            var target = new Uri("https://github.com/RyuzakiH/CloudflareSolverRe");
+
+            var handler = new ClearanceHandler
+            {
+                MaxTries = 3,
+                ClearanceDelay = 3000
+            };
+
+            var client = new HttpClient(handler);
+            client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0");
+
+            var content = client.GetStringAsync(target).Result;
+            Assert.IsTrue(content.Contains("RyuzakiH"));
+        }
     }
 }

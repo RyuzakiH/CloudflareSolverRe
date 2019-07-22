@@ -6,16 +6,16 @@ namespace CloudflareSolverRe.Exceptions
     /// <summary>
     /// The exception that is thrown if CloudFlare clearance failed after the declared number of attempts.
     /// </summary>
-    public class CloudFlareClearanceException : HttpRequestException
+    public class CloudflareClearanceException : HttpRequestException
     {
-        public CloudFlareClearanceException(int attempts) : this(attempts, $"Clearance failed after {attempts} attempt(s).") { }
+        public CloudflareClearanceException(int attempts) : this(attempts, $"Clearance failed after {attempts} attempt(s).") { }
 
-        public CloudFlareClearanceException(int attempts, string message) : base(message)
+        public CloudflareClearanceException(int attempts, string message) : base(message)
         {
             Attempts = attempts;
         }
 
-        public CloudFlareClearanceException(int attempts, string message, Exception inner) : base(message, inner)
+        public CloudflareClearanceException(int attempts, string message, Exception inner) : base(message, inner)
         {
             Attempts = attempts;
         }

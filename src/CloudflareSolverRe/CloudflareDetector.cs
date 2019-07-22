@@ -12,16 +12,16 @@ namespace CloudflareSolverRe
 {
     public class CloudflareDetector : HttpClientUtility
     {
-        private static readonly IEnumerable<string> CloudFlareServerNames = new[] { "cloudflare", "cloudflare-nginx" };
+        private static readonly IEnumerable<string> CloudflareServerNames = new[] { "cloudflare", "cloudflare-nginx" };
 
 
         public static bool IsCloudflareProtected(HttpResponseMessage response) => 
             response.Headers.Server
                 .Any(i => i.Product != null
-                    && CloudFlareServerNames.Any(s => string.Compare(s, i.Product.Name, StringComparison.OrdinalIgnoreCase).Equals(0)));
+                    && CloudflareServerNames.Any(s => string.Compare(s, i.Product.Name, StringComparison.OrdinalIgnoreCase).Equals(0)));
 
         public static bool IsErrorStatusCode(HttpResponseMessage response) =>
-            !response.StatusCode.Equals(HttpStatusCode.ServiceUnavailable) || !response.StatusCode.Equals(HttpStatusCode.Forbidden);
+            response.StatusCode.Equals(HttpStatusCode.ServiceUnavailable) || response.StatusCode.Equals(HttpStatusCode.Forbidden);
 
         public static bool IsClearanceRequired(HttpResponseMessage response) =>
             IsErrorStatusCode(response) && IsCloudflareProtected(response);
