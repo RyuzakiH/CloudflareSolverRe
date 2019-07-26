@@ -5,25 +5,24 @@ using CloudflareSolverRe.Types.Captcha;
 using System;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace CloudflareSolverRe.Solvers
 {
-    public class CaptchaChallengeSolver : ChallengeSolver
+    internal class CaptchaChallengeSolver : ChallengeSolver
     {
         private readonly ICaptchaProvider captchaProvider;
 
         private bool CaptchaSolvingEnabled => captchaProvider != null;
 
 
-        public CaptchaChallengeSolver(HttpClient client, HttpClientHandler handler, Uri siteUrl, DetectResult detectResult, ICaptchaProvider captchaProvider)
+        internal CaptchaChallengeSolver(HttpClient client, CloudflareHandler handler, Uri siteUrl, DetectResult detectResult, ICaptchaProvider captchaProvider)
             : base(client, handler, siteUrl, detectResult)
         {
             this.captchaProvider = captchaProvider;
         }
 
-        public CaptchaChallengeSolver(HttpClientHandler handler, Uri siteUrl, DetectResult detectResult, ICaptchaProvider captchaProvider)
+        internal CaptchaChallengeSolver(CloudflareHandler handler, Uri siteUrl, DetectResult detectResult, ICaptchaProvider captchaProvider)
             : base(handler, siteUrl, detectResult)
         {
             this.captchaProvider = captchaProvider;
@@ -67,9 +66,9 @@ namespace CloudflareSolverRe.Solvers
 
         private async Task<SolveResult> SubmitCaptchaSolution(CaptchaChallengeSolution solution)
         {
-            PrepareHttpHandler(HttpClientHandler);
+            var request = new HttpRequestMessage(HttpMethod.Get, new Uri(solution.ClearanceUrl));
+            request.Headers.Referrer = SiteUrl;
 
-            var request = CreateRequest(new Uri(solution.ClearanceUrl));
             var response = await HttpClient.SendAsync(request);
 
             if (response.StatusCode.Equals(HttpStatusCode.Found))

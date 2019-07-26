@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace CloudflareSolverRe.Solvers
 {
-    public class JsChallengeSolver : ChallengeSolver, IClearanceDelayable
+    internal class JsChallengeSolver : ChallengeSolver, IClearanceDelayable
     {
         /// <summary>
         /// Gets or sets the number of milliseconds to wait before sending the clearance request.
@@ -19,14 +19,14 @@ namespace CloudflareSolverRe.Solvers
         /// </remarks>
         public int ClearanceDelay { get; set; }
 
-        public JsChallengeSolver(HttpClient client, HttpClientHandler handler, Uri siteUrl, DetectResult detectResult, [Optional]int clearanceDelay)
+        internal JsChallengeSolver(HttpClient client, CloudflareHandler handler, Uri siteUrl, DetectResult detectResult, [Optional]int clearanceDelay)
             : base(client, handler, siteUrl, detectResult)
         {
             if (clearanceDelay != default(int))
                 ClearanceDelay = clearanceDelay;
         }
 
-        public JsChallengeSolver(HttpClientHandler handler, Uri siteUrl, DetectResult detectResult, [Optional]int clearanceDelay)
+        internal JsChallengeSolver(CloudflareHandler handler, Uri siteUrl, DetectResult detectResult, [Optional]int clearanceDelay)
             : base(handler, siteUrl, detectResult)
         {
             if (clearanceDelay != default(int))
@@ -66,9 +66,9 @@ namespace CloudflareSolverRe.Solvers
 
         private async Task<SolveResult> SubmitJsSolution(JsChallengeSolution solution)
         {
-            PrepareHttpHandler(HttpClientHandler);
+            var request = new HttpRequestMessage(HttpMethod.Get, new Uri(solution.ClearanceUrl));
+            request.Headers.Referrer = SiteUrl;
 
-            var request = CreateRequest(new Uri(solution.ClearanceUrl), SiteUrl);
             var response = await HttpClient.SendAsync(request);
 
             if (response.StatusCode == HttpStatusCode.Found)

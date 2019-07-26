@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace CloudflareSolverRe
 {
@@ -26,7 +27,7 @@ namespace CloudflareSolverRe
         public static readonly int DefaultMaxCaptchaTries = 1;
 
         private HttpClient _httpClient;
-        private HttpClientHandler _httpClientHandler;
+        private CloudflareHandler _cloudflareHandler;
         private Uri _siteUrl;
         private CancellationToken? _cancellationToken;
         private List<DetectResult> _captchaDetectResults;
@@ -63,12 +64,17 @@ namespace CloudflareSolverRe
         }
 
 
-        public async Task<SolveResult> Solve(HttpClient httpClient, HttpClientHandler httpClientHandler, Uri siteUrl, DetectResult? detectResult = null, CancellationToken? cancellationToken = null)
+        public async Task<SolveResult> Solve(HttpClient httpClient, HttpClientHandler httpClientHandler, Uri siteUrl, CancellationToken? cancellationToken = null)
+        {
+            _cloudflareHandler = new CloudflareHandler(httpClientHandler);
+            return await Solve(httpClient, _cloudflareHandler, siteUrl, cancellationToken);
+        }
+
+        internal async Task<SolveResult> Solve(HttpClient httpClient, CloudflareHandler cloudflareHandler, Uri siteUrl, CancellationToken? cancellationToken = null)
         {
             var result = default(SolveResult);
 
-            _httpClient = httpClient;
-            _httpClientHandler = httpClientHandler;
+            _httpClient = httpClient.Clone(_cloudflareHandler);
             _siteUrl = siteUrl;
             _cancellationToken = cancellationToken;
 
@@ -152,7 +158,7 @@ namespace CloudflareSolverRe
 
             if (!jsDetectResult.HasValue)
             {
-                jsDetectResult = await CloudflareDetector.Detect(_httpClient, _httpClientHandler, _siteUrl);
+                jsDetectResult = await CloudflareDetector.Detect(_httpClient, _cloudflareHandler, _siteUrl);
                 _siteUrl = ChangeUrlScheme(_siteUrl, jsDetectResult.Value.SupportsHttp);
             }
 
@@ -160,7 +166,7 @@ namespace CloudflareSolverRe
             if (exceptional.Item1)
                 result = exceptional.Item2;
             else if (jsDetectResult.Value.Protection.Equals(CloudflareProtection.JavaScript))
-                result = await new JsChallengeSolver(_httpClient, _httpClientHandler, _siteUrl, jsDetectResult.Value, ClearanceDelay)
+                result = await new JsChallengeSolver(_httpClient, _cloudflareHandler, _siteUrl, jsDetectResult.Value, ClearanceDelay)
                     .Solve();
 
             if (!result.Success && result.NewDetectResult.HasValue && result.NewDetectResult.Value.Protection.Equals(CloudflareProtection.Captcha))
@@ -178,7 +184,7 @@ namespace CloudflareSolverRe
 
             if (!captchaDetectResult.HasValue)
             {
-                captchaDetectResult = await CloudflareDetector.Detect(_httpClient, _httpClientHandler, _siteUrl);
+                captchaDetectResult = await CloudflareDetector.Detect(_httpClient, _cloudflareHandler, _siteUrl);
                 _siteUrl = ChangeUrlScheme(_siteUrl, captchaDetectResult.Value.SupportsHttp);
             }
 
@@ -186,11 +192,11 @@ namespace CloudflareSolverRe
             if (exceptional.Item1)
                 result = exceptional.Item2;
             else if (captchaDetectResult.Value.Protection.Equals(CloudflareProtection.Captcha))
-                result = await new CaptchaChallengeSolver(_httpClient, _httpClientHandler, _siteUrl, captchaDetectResult.Value, captchaProvider)
+                result = await new CaptchaChallengeSolver(_httpClient, _cloudflareHandler, _siteUrl, captchaDetectResult.Value, captchaProvider)
                     .Solve();
             else if (captchaDetectResult.Value.Protection.Equals(CloudflareProtection.JavaScript))
                 result = await SolveJavascriptChallenge(captchaDetectResult);
-                
+
             return result;
         }
 
@@ -208,8 +214,9 @@ namespace CloudflareSolverRe
         private void ClearSessionVariables()
         {
             _httpClient = null;
-            _httpClientHandler = null;
+            _cloudflareHandler = null;
             _siteUrl = null;
+            _cancellationToken = null;
             _captchaDetectResults.Clear();
         }
 

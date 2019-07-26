@@ -12,18 +12,18 @@ namespace CloudflareSolverRe.Types
         internal DetectResult? NewDetectResult;
         internal HttpResponseMessage Response;
 
-        public static SolveResult NoProtection = new SolveResult
+        public static readonly SolveResult NoProtection = new SolveResult
         {
             Success = true,
         };
 
-        public static SolveResult Banned = new SolveResult
+        public static readonly SolveResult Banned = new SolveResult
         {
             Success = false,
             FailReason = Errors.IpAddressIsBanned,
         };
 
-        public static SolveResult Unknown = new SolveResult
+        public static readonly SolveResult Unknown = new SolveResult
         {
             Success = false,
             FailReason = Errors.UnknownProtectionDetected,

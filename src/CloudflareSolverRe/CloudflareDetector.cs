@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace CloudflareSolverRe
 {
-    public class CloudflareDetector : HttpClientUtility
+    public class CloudflareDetector
     {
         private static readonly IEnumerable<string> CloudflareServerNames = new[] { "cloudflare", "cloudflare-nginx" };
 
@@ -29,27 +29,35 @@ namespace CloudflareSolverRe
 
         public static async Task<DetectResult> Detect(HttpClient httpClient, HttpClientHandler httpClientHandler, Uri targetUri, bool requireHttps = false)
         {
-            PrepareHttpHandler(httpClientHandler);
+            var cloudflareHandler = new CloudflareHandler(httpClientHandler);
+            return await Detect(httpClient, cloudflareHandler, targetUri, requireHttps);
+        }
+
+        internal static async Task<DetectResult> Detect(HttpClient httpClient, CloudflareHandler cloudflareHandler, Uri targetUri, bool requireHttps = false)
+        {
+            var _httpClient = httpClient.Clone(cloudflareHandler);
 
             if (!requireHttps)
                 targetUri = targetUri.ForceHttp();
 
-            var request = CreateRequest(targetUri);
-            var response = await httpClient.SendAsync(request);
-
-            var detectResult = await Detect(response);
+            var detectResult = await Detect(_httpClient, targetUri);
 
             if (detectResult.Protection.Equals(CloudflareProtection.Unknown) && !detectResult.SupportsHttp)
             {
                 targetUri = targetUri.ForceHttps();
 
-                request = CreateRequest(targetUri);
-                response = await httpClient.SendAsync(request);
-
-                detectResult = await Detect(response);
+                detectResult = await Detect(_httpClient, targetUri);
             }
 
             return detectResult;
+        }
+
+        public static async Task<DetectResult> Detect(HttpClient httpClient, Uri targetUri)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, targetUri);
+            var response = await httpClient.SendAsync(request);
+
+            return await Detect(response);
         }
 
         public static async Task<DetectResult> Detect(HttpResponseMessage response)
