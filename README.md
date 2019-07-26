@@ -204,5 +204,5 @@ public class AntiCaptchaProvider : ICaptchaProvider
 - [hdmovie8](https://hdmovie8.com)
 - [japscan](https://www.japscan.to)
 - [spacetorrent.cloud](https://www.spacetorrent.cloud)
-- [codepen](https://codepen.io)
+- [codepen](https://codepen.io) (captcha challenges only - js challenges not allowed)
 - [temp-mail](temp-mail.org) (not always using cloudflare)
