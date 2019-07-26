@@ -3,7 +3,7 @@ CloudflareSolverRe
 [![NuGet](https://img.shields.io/nuget/v/CloudflareSolverRe.svg?maxAge=60)](https://www.nuget.org/packages/CloudflareSolverRe)
 [![NuGet](https://img.shields.io/nuget/v/CloudflareSolverRe.Captcha.svg?maxAge=60)](https://www.nuget.org/packages/CloudflareSolverRe.Captcha)
 
-Cloudflare JavaScript & ReCaptchaV2 challenge (Under Attack Mode) solving/bypass .NET Standard library.
+Cloudflare Javascript & reCaptcha v2 challenge (Under Attack Mode) solving/bypass .NET Standard library.
 
 _Reawakening of [CloudflareSolver](https://www.nuget.org/packages/CloudflareSolver) (removed) adding the capabilities ([DelegatingHandler](https://msdn.microsoft.com/en-us/library/system.net.http.delegatinghandler(v=vs.110).aspx)) of [CloudFlareUtilities](https://github.com/elcattivo/CloudFlareUtilities) (not working)._
 
@@ -198,3 +198,11 @@ public class AntiCaptchaProvider : ICaptchaProvider
     }
 }
 ```
+
+# Tested Sites
+- [hitmehard](https://uam.hitmehard.fun/HIT)
+- [hdmovie8](https://hdmovie8.com)
+- [japscan](https://www.japscan.to)
+- [spacetorrent.cloud](https://www.spacetorrent.cloud)
+- [codepen](https://codepen.io)
+- [temp-mail](temp-mail.org) (not always using cloudflare)
