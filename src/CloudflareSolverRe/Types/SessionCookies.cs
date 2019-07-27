@@ -8,8 +8,8 @@ namespace CloudflareSolverRe.Types
 {
     public class SessionCookies : IEquatable<SessionCookies>
     {
-        private const string IdCookieName = "__cfduid";
-        private const string ClearanceCookieName = "cf_clearance";
+        internal const string IdCookieName = "__cfduid";
+        internal const string ClearanceCookieName = "cf_clearance";
 
         public Cookie Cfduid { get; set; }
         public Cookie Cf_Clearance { get; set; }

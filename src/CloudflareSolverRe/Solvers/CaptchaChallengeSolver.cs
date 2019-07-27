@@ -3,6 +3,7 @@ using CloudflareSolverRe.Constants;
 using CloudflareSolverRe.Types;
 using CloudflareSolverRe.Types.Captcha;
 using System;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -71,14 +72,22 @@ namespace CloudflareSolverRe.Solvers
 
             var response = await HttpClient.SendAsync(request);
 
-            if (response.StatusCode.Equals(HttpStatusCode.Found))
+            return GetSolveResult(response);
+        }
+
+        private SolveResult GetSolveResult(HttpResponseMessage submissionResponse)
+        {
+            if (submissionResponse.StatusCode.Equals(HttpStatusCode.Found))
             {
-                var success = response.Headers.Contains(HttpHeaders.SetCookie);
-                return new SolveResult(success, LayerCaptcha, success ? null : Errors.ClearanceCookieNotFound, DetectResult, response);
+                var success = submissionResponse.Headers.Contains(HttpHeaders.SetCookie) &&
+                    submissionResponse.Headers.GetValues(HttpHeaders.SetCookie)
+                    .Any(cookieValue => cookieValue.Contains(SessionCookies.ClearanceCookieName));
+
+                return new SolveResult(success, LayerCaptcha, success ? null : Errors.ClearanceCookieNotFound, DetectResult, submissionResponse);
             }
             else
             {
-                return new SolveResult(false, LayerCaptcha, Errors.SomethingWrongHappened, DetectResult, response); //"invalid submit response"
+                return new SolveResult(false, LayerCaptcha, Errors.SomethingWrongHappened, DetectResult, submissionResponse); //"invalid submit response"
             }
         }
 

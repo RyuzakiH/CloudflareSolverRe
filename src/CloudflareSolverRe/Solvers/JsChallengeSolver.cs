@@ -2,6 +2,7 @@
 using CloudflareSolverRe.Types;
 using CloudflareSolverRe.Types.Javascript;
 using System;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.InteropServices;
@@ -71,18 +72,26 @@ namespace CloudflareSolverRe.Solvers
 
             var response = await HttpClient.SendAsync(request);
 
-            if (response.StatusCode == HttpStatusCode.Found)
+            return GetSolveResult(response);
+        }
+
+        private SolveResult GetSolveResult(HttpResponseMessage submissionResponse)
+        {
+            if (submissionResponse.StatusCode == HttpStatusCode.Found)
             {
-                var success = response.Headers.Contains(HttpHeaders.SetCookie);
-                return new SolveResult(success, LayerJavaScript, success ? null : Errors.ClearanceCookieNotFound, DetectResult, response); // "invalid submit response"
+                var success = submissionResponse.Headers.Contains(HttpHeaders.SetCookie) &&
+                    submissionResponse.Headers.GetValues(HttpHeaders.SetCookie)
+                    .Any(cookieValue => cookieValue.Contains(SessionCookies.ClearanceCookieName));
+
+                return new SolveResult(success, LayerJavaScript, success ? null : Errors.ClearanceCookieNotFound, DetectResult, submissionResponse); // "invalid submit response"
             }
-            else if (response.StatusCode == HttpStatusCode.Forbidden)
+            else if (submissionResponse.StatusCode == HttpStatusCode.Forbidden)
             {
-                return new SolveResult(false, LayerCaptcha, Errors.CaptchaSolverRequired, DetectResult, response);
+                return new SolveResult(false, LayerCaptcha, Errors.CaptchaSolverRequired, DetectResult, submissionResponse);
             }
             else
             {
-                return new SolveResult(false, LayerJavaScript, Errors.SomethingWrongHappened, DetectResult, response);
+                return new SolveResult(false, LayerJavaScript, Errors.SomethingWrongHappened, DetectResult, submissionResponse);
             }
         }
 
