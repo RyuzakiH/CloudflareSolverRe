@@ -205,4 +205,4 @@ public class AntiCaptchaProvider : ICaptchaProvider
 - [japscan](https://www.japscan.to)
 - [spacetorrent.cloud](https://www.spacetorrent.cloud)
 - [codepen](https://codepen.io) (captcha challenges only - js challenges not allowed)
-- [temp-mail](temp-mail.org) (not always using cloudflare)
+- [temp-mail](https://temp-mail.org) (not always using cloudflare)
