@@ -31,9 +31,12 @@ namespace CloudflareSolverRe.Tests
         [TestMethod]
         public void SolveWebsiteChallenge_uamhitmehardfun_WithAntiCaptcha()
         {
+            if (Settings.AntiCaptchaApiKey.Equals("YOUR_API_KEY"))
+                return;
+
             var target = new Uri("https://uam.hitmehard.fun/HIT");
 
-            var handler = new ClearanceHandler(new AntiCaptchaProvider("YOUR_API_KEY"))
+            var handler = new ClearanceHandler(new AntiCaptchaProvider(Settings.AntiCaptchaApiKey))
             {
                 MaxTries = 3,
                 MaxCaptchaTries = 2,
@@ -50,9 +53,12 @@ namespace CloudflareSolverRe.Tests
         [TestMethod]
         public void SolveWebsiteChallenge_uamhitmehardfun_With2Captcha()
         {
+            if (Settings.TwoCaptchaApiKey.Equals("YOUR_API_KEY"))
+                return;
+
             var target = new Uri("https://uam.hitmehard.fun/HIT");
 
-            var handler = new ClearanceHandler(new TwoCaptchaProvider("YOUR_API_KEY"))
+            var handler = new ClearanceHandler(new TwoCaptchaProvider(Settings.TwoCaptchaApiKey))
             {
                 MaxTries = 3,
                 MaxCaptchaTries = 2,
