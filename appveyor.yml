@@ -1,0 +1,8 @@
+version: 1.0.{build}
+image: Visual Studio 2017
+before_build:
+ - dotnet restore
+build_script:
+ - dotnet build /verbosity:quiet "CloudflareSolverRe.sln"
+test_script:
+ - dotnet test --no-build .\test\CloudflareSolverRe.Tests\CloudflareSolverRe.Tests.csproj
