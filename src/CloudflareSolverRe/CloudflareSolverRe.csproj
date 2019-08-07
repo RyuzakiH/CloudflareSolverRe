@@ -17,4 +17,8 @@
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="MyPackage" Version="1.0.0" Condition="false" />
+  </ItemGroup>
+  
 </Project>
