@@ -2,11 +2,10 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard1.1</TargetFramework>
+    <PackageId>CloudflareSolverRe</PackageId>
     <RootNamespace>CloudflareSolverRe</RootNamespace>
-    <PackageIconUrl></PackageIconUrl>
     <Version>1.0.3</Version>
     <Authors>Zaczero, RyuzakiH</Authors>
-    <Company></Company>
     <Description>Cloudflare Javascript &amp; reCaptcha v2 challenge (Under Attack Mode) solving/bypass .NET Standard library.</Description>
     <Copyright></Copyright>
     <PackageLicenseUrl>https://github.com/RyuzakiH/CloudflareSolverRe/blob/master/LICENSE</PackageLicenseUrl>
@@ -17,8 +16,4 @@
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="MyPackage" Version="1.0.0" Condition="false" />
-  </ItemGroup>
-  
 </Project>
