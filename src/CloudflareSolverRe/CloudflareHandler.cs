@@ -1,9 +1,11 @@
 ﻿using CloudflareSolverRe.Constants;
 using CloudflareSolverRe.Extensions;
+using CloudflareSolverRe.Utilities;
 using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,19 +13,26 @@ namespace CloudflareSolverRe
 {
     public class CloudflareHandler : DelegatingHandler
     {
+        private readonly string userAgent;
+
         private HttpClientHandler HttpClientHandler => InnerHandler.GetMostInnerHandler() as HttpClientHandler;
 
 
         /// <summary>
-        /// Creates a new instance of the <see cref="ClearanceHandler"/> class with a <see cref="System.Net.Http.HttpClientHandler"/> as inner handler.
+        /// Creates a new instance of the <see cref="CloudflareHandler"/> class with a <see cref="System.Net.Http.HttpClientHandler"/> as inner handler.
         /// </summary>
-        public CloudflareHandler() : this(new HttpClientHandler()) { }
+        /// <param name="userAgent">The user-agent which will be used accross this session.</param>
+        public CloudflareHandler([Optional]string userAgent) : this(new HttpClientHandler(), userAgent) { }
 
         /// <summary>
-        /// Creates a new instance of the <see cref="ClearanceHandler"/> class with a specific inner handler.
+        /// Creates a new instance of the <see cref="CloudflareHandler"/> class with a specific inner handler.
         /// </summary>
         /// <param name="innerHandler">The inner handler which is responsible for processing the HTTP response messages.</param>
-        public CloudflareHandler(HttpMessageHandler innerHandler) : base(innerHandler) { }
+        /// <param name="userAgent">The user-agent which will be used accross this session.</param>
+        public CloudflareHandler(HttpMessageHandler innerHandler, [Optional]string userAgent) : base(innerHandler)
+        {
+            this.userAgent = userAgent ?? Utils.GetGenerateRandomUserAgent();
+        }
 
 
         /// <summary>
@@ -62,24 +71,23 @@ namespace CloudflareSolverRe
             if (request.Headers.Host == null)
                 request.Headers.Host = request.RequestUri.Host;
 
-            // TODO: Random UserAgent
-            if (!request.Headers.UserAgent.Any())
-                request.Headers.UserAgent.ParseAdd(UserAgents.Firefox66_Win10);
+            if (!request.Headers.UserAgent.ToString().Equals(userAgent))
+            {
+                request.Headers.UserAgent.Clear();
+                request.Headers.UserAgent.ParseAdd(userAgent);
+            }
 
             if (!request.Headers.Accept.Any())
-                request.Headers.TryAddWithoutValidation(Constants.HttpHeaders.Accept, HttpHeaderValues.HtmlXmlAll);
+                request.Headers.TryAddWithoutValidation(HttpHeaders.Accept, HttpHeaderValues.HtmlXmlAll);
 
             if (!request.Headers.AcceptLanguage.Any())
-                request.Headers.TryAddWithoutValidation(Constants.HttpHeaders.AcceptLanguage, HttpHeaderValues.En_Us);
+                request.Headers.TryAddWithoutValidation(HttpHeaders.AcceptLanguage, HttpHeaderValues.En_Us);
 
             if (!request.Headers.Connection.Any())
                 request.Headers.Connection.ParseAdd(HttpHeaderValues.KeepAlive);
 
-            //if (!request.Headers.Contains(Constants.HttpHeaders.DNT))
-            //    request.Headers.Add(Constants.HttpHeaders.DNT, "1");
-
-            if (!request.Headers.Contains(Constants.HttpHeaders.UpgradeInsecureRequests))
-                request.Headers.Add(Constants.HttpHeaders.UpgradeInsecureRequests, "1");
+            if (!request.Headers.Contains(HttpHeaders.UpgradeInsecureRequests))
+                request.Headers.Add(HttpHeaders.UpgradeInsecureRequests, "1");
         }
 
         private void GeneralizeCookies(Uri requestUri)

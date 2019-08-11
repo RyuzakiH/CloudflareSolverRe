@@ -3,9 +3,11 @@ using CloudflareSolverRe.Constants;
 using CloudflareSolverRe.Exceptions;
 using CloudflareSolverRe.Extensions;
 using CloudflareSolverRe.Types;
+using CloudflareSolverRe.Utilities;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,6 +25,7 @@ namespace CloudflareSolverRe
         private readonly HttpClient _client;
         private readonly HttpClientHandler _handler;
         private readonly CloudflareSolver _cloudflareSolver;
+        private readonly string userAgent;
 
         /// <summary>
         /// Gets or sets the number of clearance retries, if clearance fails.
@@ -61,26 +64,30 @@ namespace CloudflareSolverRe
         /// <summary>
         /// Creates a new instance of the <see cref="ClearanceHandler"/> class with a <see cref="System.Net.Http.HttpClientHandler"/> as inner handler.
         /// </summary>
-        public ClearanceHandler() : this(new HttpClientHandler()) { }
+        /// <param name="userAgent">The user-agent which will be used accross this session.</param>
+        public ClearanceHandler([Optional]string userAgent) : this(new HttpClientHandler(), userAgent) { }
 
         /// <summary>
         /// Creates a new instance of the <see cref="ClearanceHandler"/> class with a specific inner handler.
         /// </summary>
         /// <param name="innerHandler">The inner handler which is responsible for processing the HTTP response messages.</param>
-        public ClearanceHandler(HttpMessageHandler innerHandler) : this(innerHandler, null) { }
+        /// <param name="userAgent">The user-agent which will be used accross this session.</param>
+        public ClearanceHandler(HttpMessageHandler innerHandler, [Optional]string userAgent) : this(innerHandler, null, userAgent) { }
 
         /// <summary>
         /// Creates a new instance of the <see cref="ClearanceHandler"/> class with a captcha provider.
         /// </summary>
         /// <param name="captchaProvider">The captcha provider which is responsible for solving captcha challenges.</param>
-        public ClearanceHandler(ICaptchaProvider captchaProvider) : this(new HttpClientHandler(), captchaProvider) { }
+        /// <param name="userAgent">The user-agent which will be used accross this session.</param>
+        public ClearanceHandler(ICaptchaProvider captchaProvider, [Optional]string userAgent) : this(new HttpClientHandler(), captchaProvider, userAgent) { }
 
         /// <summary>
         /// Creates a new instance of the <see cref="ClearanceHandler"/> class with a specific inner handler and a captcha provider.
         /// </summary>
         /// <param name="innerHandler">The inner handler which is responsible for processing the HTTP response messages.</param>
         /// <param name="captchaProvider">The captcha provider which is responsible for solving captcha challenges.</param>
-        public ClearanceHandler(HttpMessageHandler innerHandler, ICaptchaProvider captchaProvider) : base(innerHandler)
+        /// <param name="userAgent">The user-agent which will be used accross this session.</param>
+        public ClearanceHandler(HttpMessageHandler innerHandler, ICaptchaProvider captchaProvider, [Optional]string userAgent) : base(innerHandler)
         {
             _client = new HttpClient(_handler = new HttpClientHandler
             {
@@ -89,7 +96,9 @@ namespace CloudflareSolverRe
                 CookieContainer = _cookies = new CookieContainer()
             });
 
-            _cloudflareSolver = new CloudflareSolver(captchaProvider);
+            this.userAgent = userAgent ?? Utils.GetGenerateRandomUserAgent();
+
+            _cloudflareSolver = new CloudflareSolver(captchaProvider, this.userAgent);
         }
 
 
@@ -122,10 +131,13 @@ namespace CloudflareSolverRe
             return response;
         }
 
-        private static void EnsureHeaders(HttpRequestMessage request)
+        private void EnsureHeaders(HttpRequestMessage request)
         {
-            if (!request.Headers.UserAgent.Any())
-                request.Headers.Add(HttpHeaders.UserAgent, UserAgents.Firefox66_Win10);
+            if (!request.Headers.UserAgent.ToString().Equals(userAgent))
+            {
+                request.Headers.UserAgent.Clear();
+                request.Headers.Add(HttpHeaders.UserAgent, userAgent);
+            }
         }
 
         private void InjectCookies(HttpRequestMessage request)

@@ -13,19 +13,21 @@ namespace CloudflareSolverRe.Solvers
         protected HttpClient HttpClient { get; }
         protected CloudflareHandler CloudflareHandler { get; }
         protected DetectResult DetectResult { get; private set; }
+        protected string UserAgent { get; }
         protected Uri SiteUrl { get; }
 
 
-        internal ChallengeSolver(HttpClient client, CloudflareHandler handler, Uri siteUrl, DetectResult detectResult)
+        internal ChallengeSolver(HttpClient client, CloudflareHandler handler, Uri siteUrl, DetectResult detectResult, string userAgent)
         {
             HttpClient = client;
             CloudflareHandler = handler;
             SiteUrl = siteUrl;
             DetectResult = detectResult;
+            UserAgent = userAgent;
         }
 
-        internal ChallengeSolver(CloudflareHandler handler, Uri siteUrl, DetectResult detectResult)
-            : this(new HttpClient(handler), handler, siteUrl, detectResult)
+        internal ChallengeSolver(CloudflareHandler handler, Uri siteUrl, DetectResult detectResult, string userAgent)
+            : this(new HttpClient(handler), handler, siteUrl, detectResult, userAgent)
         {
         }
 

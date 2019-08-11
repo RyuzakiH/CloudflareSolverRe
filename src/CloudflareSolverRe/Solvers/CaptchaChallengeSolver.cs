@@ -17,14 +17,14 @@ namespace CloudflareSolverRe.Solvers
         private bool CaptchaSolvingEnabled => captchaProvider != null;
 
 
-        internal CaptchaChallengeSolver(HttpClient client, CloudflareHandler handler, Uri siteUrl, DetectResult detectResult, ICaptchaProvider captchaProvider)
-            : base(client, handler, siteUrl, detectResult)
+        internal CaptchaChallengeSolver(HttpClient client, CloudflareHandler handler, Uri siteUrl, DetectResult detectResult, string userAgent, ICaptchaProvider captchaProvider)
+            : base(client, handler, siteUrl, detectResult, userAgent)
         {
             this.captchaProvider = captchaProvider;
         }
 
-        internal CaptchaChallengeSolver(CloudflareHandler handler, Uri siteUrl, DetectResult detectResult, ICaptchaProvider captchaProvider)
-            : base(handler, siteUrl, detectResult)
+        internal CaptchaChallengeSolver(CloudflareHandler handler, Uri siteUrl, DetectResult detectResult, string userAgent, ICaptchaProvider captchaProvider)
+            : base(handler, siteUrl, detectResult, userAgent)
         {
             this.captchaProvider = captchaProvider;
         }
@@ -58,7 +58,7 @@ namespace CloudflareSolverRe.Solvers
             var result = await challenge.Solve(captchaProvider);
 
             if (!result.Success)
-                return new SolveResult(false, LayerCaptcha, $"captcha provider error ({result.Response})", DetectResult);
+                return new SolveResult(false, LayerCaptcha, $"captcha provider error ({result.Response})", DetectResult, UserAgent);
 
             var solution = new CaptchaChallengeSolution(challenge, result.Response);
 
@@ -83,11 +83,11 @@ namespace CloudflareSolverRe.Solvers
                     submissionResponse.Headers.GetValues(HttpHeaders.SetCookie)
                     .Any(cookieValue => cookieValue.Contains(SessionCookies.ClearanceCookieName));
 
-                return new SolveResult(success, LayerCaptcha, success ? null : Errors.ClearanceCookieNotFound, DetectResult, submissionResponse);
+                return new SolveResult(success, LayerCaptcha, success ? null : Errors.ClearanceCookieNotFound, DetectResult, UserAgent, submissionResponse);
             }
             else
             {
-                return new SolveResult(false, LayerCaptcha, Errors.SomethingWrongHappened, DetectResult, submissionResponse); //"invalid submit response"
+                return new SolveResult(false, LayerCaptcha, Errors.SomethingWrongHappened, DetectResult, UserAgent, submissionResponse); //"invalid submit response"
             }
         }
 
