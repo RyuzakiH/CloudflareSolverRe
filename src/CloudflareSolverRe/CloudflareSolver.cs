@@ -12,7 +12,7 @@ using System.Linq;
 
 namespace CloudflareSolverRe
 {
-    public class CloudflareSolver : IClearanceDelayable, IRetriable
+    public class CloudflareSolver : ICloudflareSolver
     {
         private readonly ICaptchaProvider captchaProvider;
 
@@ -67,26 +67,44 @@ namespace CloudflareSolverRe
         public async Task<SolveResult> Solve(HttpClient httpClient, HttpClientHandler httpClientHandler, Uri siteUrl, CancellationToken? cancellationToken = null)
         {
             _cloudflareHandler = new CloudflareHandler(httpClientHandler);
-            return await Solve(httpClient, _cloudflareHandler, siteUrl, cancellationToken);
+
+            var result = await Solve(httpClient, siteUrl, cancellationToken);
+
+            _cloudflareHandler.Dispose();
+
+            return result;
         }
 
         internal async Task<SolveResult> Solve(HttpClient httpClient, CloudflareHandler cloudflareHandler, Uri siteUrl, CancellationToken? cancellationToken = null)
         {
-            var result = default(SolveResult);
+            _cloudflareHandler = cloudflareHandler;
+            return await Solve(httpClient, siteUrl, cancellationToken);
+        }
 
-            _httpClient = httpClient.Clone(_cloudflareHandler);
+        private async Task<SolveResult> Solve(HttpClient httpClient, Uri siteUrl, CancellationToken? cancellationToken = null)
+        {
+            _httpClient = httpClient.Clone(_cloudflareHandler, false);
             _siteUrl = siteUrl;
             _cancellationToken = cancellationToken;
 
-            result = await SolveWithJavascript(MaxTries - (CaptchaSolvingEnabled ? MaxCaptchaTries : 0));
+            var result = await Solve();
 
-            if (CaptchaSolvingEnabled)
-                result = await SolveWithCaptcha();
-
-            ClearSessionVariables();
+            _httpClient.Dispose();
+            _captchaDetectResults.Clear();
 
             return result;
         }
+
+        private async Task<SolveResult> Solve()
+        {
+            var result = await SolveWithJavascript(MaxTries - (CaptchaSolvingEnabled ? MaxCaptchaTries : 0));
+
+            if (!result.Success && CaptchaSolvingEnabled)
+                result = await SolveWithCaptcha();
+
+            return result;
+        }
+
 
         private async Task<SolveResult> SolveWithJavascript(int tries)
         {
@@ -209,16 +227,6 @@ namespace CloudflareSolverRe
                 uri = uri.ForceHttp();
 
             return uri;
-        }
-
-        private void ClearSessionVariables()
-        {
-            _httpClient = null;
-            _cloudflareHandler = null;
-            _siteUrl = null;
-            _cancellationToken = null;
-            _captchaDetectResults.Clear();
-        }
-
+        }        
     }
 }

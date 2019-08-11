@@ -108,7 +108,7 @@ namespace CloudflareSolverRe
             var result = default(SolveResult);
 
             if (CloudflareDetector.IsClearanceRequired(response))
-                result = await TryClearance(request, cancellationToken);
+                result = await GetClearance(request, cancellationToken);
             
             if (result.Success)
             {
@@ -155,7 +155,7 @@ namespace CloudflareSolverRe
             return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<SolveResult> TryClearance(HttpRequestMessage request, CancellationToken cancellationToken) =>
+        private async Task<SolveResult> GetClearance(HttpRequestMessage request, CancellationToken cancellationToken) =>
             await _cloudflareSolver.Solve(_client, _handler, request.RequestUri, cancellationToken: cancellationToken);
 
         private void InjectSetCookieHeader(HttpResponseMessage response, SessionCookies oldSessionCookies)

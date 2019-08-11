@@ -17,10 +17,10 @@ namespace CloudflareSolverRe.Extensions
 
         internal static HttpClient Clone(this HttpClient httpClient, HttpMessageHandler handler, bool disposeHandler)
         {
-            return httpClient.Clone(handler, disposeHandler);
+            return httpClient.Clone(handler, disposeHandler, true);
         }
 
-        private static HttpClient Clone(this HttpClient httpClient, [Optional]HttpMessageHandler handler, [Optional]bool? disposeHandler)
+        private static HttpClient Clone(this HttpClient httpClient, HttpMessageHandler handler, bool? disposeHandler, [Optional]bool internal_)
         {
             HttpClient client;
 
@@ -35,7 +35,6 @@ namespace CloudflareSolverRe.Extensions
             client.MaxResponseContentBufferSize = httpClient.MaxResponseContentBufferSize;
             client.Timeout = httpClient.Timeout;
 
-            //client.DefaultRequestHeaders.ToList().ForEach(header => cc.DefaultRequestHeaders.Add(header.Key, header.Value));
             foreach (var header in httpClient.DefaultRequestHeaders)
                 client.DefaultRequestHeaders.Add(header.Key, header.Value);
 

@@ -30,12 +30,17 @@ namespace CloudflareSolverRe
         public static async Task<DetectResult> Detect(HttpClient httpClient, HttpClientHandler httpClientHandler, Uri targetUri, bool requireHttps = false)
         {
             var cloudflareHandler = new CloudflareHandler(httpClientHandler);
-            return await Detect(httpClient, cloudflareHandler, targetUri, requireHttps);
+
+            var result = await Detect(httpClient, cloudflareHandler, targetUri, requireHttps);
+
+            cloudflareHandler.Dispose();
+
+            return result;
         }
 
         internal static async Task<DetectResult> Detect(HttpClient httpClient, CloudflareHandler cloudflareHandler, Uri targetUri, bool requireHttps = false)
         {
-            var _httpClient = httpClient.Clone(cloudflareHandler);
+            var _httpClient = httpClient.Clone(cloudflareHandler, false);
 
             if (!requireHttps)
                 targetUri = targetUri.ForceHttp();
@@ -45,9 +50,10 @@ namespace CloudflareSolverRe
             if (detectResult.Protection.Equals(CloudflareProtection.Unknown) && !detectResult.SupportsHttp)
             {
                 targetUri = targetUri.ForceHttps();
-
                 detectResult = await Detect(_httpClient, targetUri);
             }
+
+            _httpClient.Dispose();
 
             return detectResult;
         }
@@ -120,7 +126,6 @@ namespace CloudflareSolverRe
                 Protection = CloudflareProtection.Unknown,
             };
         }
-
 
     }
 }
