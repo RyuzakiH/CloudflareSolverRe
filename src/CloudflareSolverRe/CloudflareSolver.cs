@@ -67,12 +67,7 @@ namespace CloudflareSolverRe
         public async Task<SolveResult> Solve(HttpClient httpClient, HttpClientHandler httpClientHandler, Uri siteUrl, CancellationToken? cancellationToken = null)
         {
             _cloudflareHandler = new CloudflareHandler(httpClientHandler);
-
-            var result = await Solve(httpClient, siteUrl, cancellationToken);
-
-            _cloudflareHandler.Dispose();
-
-            return result;
+            return await Solve(httpClient, siteUrl, cancellationToken);
         }
 
         internal async Task<SolveResult> Solve(HttpClient httpClient, CloudflareHandler cloudflareHandler, Uri siteUrl, CancellationToken? cancellationToken = null)

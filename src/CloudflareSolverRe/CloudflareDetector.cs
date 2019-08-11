@@ -30,12 +30,7 @@ namespace CloudflareSolverRe
         public static async Task<DetectResult> Detect(HttpClient httpClient, HttpClientHandler httpClientHandler, Uri targetUri, bool requireHttps = false)
         {
             var cloudflareHandler = new CloudflareHandler(httpClientHandler);
-
-            var result = await Detect(httpClient, cloudflareHandler, targetUri, requireHttps);
-
-            cloudflareHandler.Dispose();
-
-            return result;
+            return await Detect(httpClient, cloudflareHandler, targetUri, requireHttps);
         }
 
         internal static async Task<DetectResult> Detect(HttpClient httpClient, CloudflareHandler cloudflareHandler, Uri targetUri, bool requireHttps = false)
@@ -58,7 +53,7 @@ namespace CloudflareSolverRe
             return detectResult;
         }
 
-        public static async Task<DetectResult> Detect(HttpClient httpClient, Uri targetUri)
+        private static async Task<DetectResult> Detect(HttpClient httpClient, Uri targetUri)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, targetUri);
             var response = await httpClient.SendAsync(request);
