@@ -41,8 +41,8 @@ namespace CloudflareSolverRe
         /// <summary>
         /// Detects cloudflare protection type for a specific website.
         /// </summary>
-        /// <param name="httpClient">The HttpClient to use in detection process.</param>
-        /// <param name="httpClientHandler">The HttpClientHandler of the HttpClient.</param>
+        /// <param name="httpClient">HttpClient to use in detection process.</param>
+        /// <param name="httpClientHandler">HttpClientHandler of the HttpClient.</param>
         /// <param name="targetUri">The uri of the website.</param>
         /// <param name="requireHttps">Https is required.</param>
         public static async Task<DetectResult> Detect(HttpClient httpClient, HttpClientHandler httpClientHandler, Uri targetUri, bool requireHttps = false)

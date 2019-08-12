@@ -64,21 +64,21 @@ namespace CloudflareSolverRe
         /// <summary>
         /// Creates a new instance of the <see cref="ClearanceHandler"/> class with a <see cref="System.Net.Http.HttpClientHandler"/> as inner handler.
         /// </summary>
-        /// <param name="userAgent">The user-agent which will be used accross this session.</param>
+        /// <param name="userAgent">The user-agent which will be used accross this session (null means random user-agent).</param>
         public ClearanceHandler([Optional]string userAgent) : this(new HttpClientHandler(), userAgent) { }
 
         /// <summary>
         /// Creates a new instance of the <see cref="ClearanceHandler"/> class with a specific inner handler.
         /// </summary>
         /// <param name="innerHandler">The inner handler which is responsible for processing the HTTP response messages.</param>
-        /// <param name="userAgent">The user-agent which will be used accross this session.</param>
+        /// <param name="userAgent">The user-agent which will be used accross this session (null means random user-agent).</param>
         public ClearanceHandler(HttpMessageHandler innerHandler, [Optional]string userAgent) : this(innerHandler, null, userAgent) { }
 
         /// <summary>
         /// Creates a new instance of the <see cref="ClearanceHandler"/> class with a captcha provider.
         /// </summary>
         /// <param name="captchaProvider">The captcha provider which is responsible for solving captcha challenges.</param>
-        /// <param name="userAgent">The user-agent which will be used accross this session.</param>
+        /// <param name="userAgent">The user-agent which will be used accross this session (null means random user-agent).</param>
         public ClearanceHandler(ICaptchaProvider captchaProvider, [Optional]string userAgent) : this(new HttpClientHandler(), captchaProvider, userAgent) { }
 
         /// <summary>
@@ -86,7 +86,7 @@ namespace CloudflareSolverRe
         /// </summary>
         /// <param name="innerHandler">The inner handler which is responsible for processing the HTTP response messages.</param>
         /// <param name="captchaProvider">The captcha provider which is responsible for solving captcha challenges.</param>
-        /// <param name="userAgent">The user-agent which will be used accross this session.</param>
+        /// <param name="userAgent">The user-agent which will be used accross this session (null means random user-agent).</param>
         public ClearanceHandler(HttpMessageHandler innerHandler, ICaptchaProvider captchaProvider, [Optional]string userAgent) : base(innerHandler)
         {
             _client = new HttpClient(_handler = new HttpClientHandler

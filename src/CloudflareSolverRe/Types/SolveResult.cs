@@ -17,6 +17,7 @@ namespace CloudflareSolverRe.Types
         public static readonly SolveResult NoProtection = new SolveResult
         {
             Success = true,
+            Cookies = new SessionCookies(null)
         };
 
         public static readonly SolveResult Banned = new SolveResult

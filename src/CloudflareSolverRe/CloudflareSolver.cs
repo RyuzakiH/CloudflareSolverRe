@@ -29,7 +29,6 @@ namespace CloudflareSolverRe
 
         private readonly ICaptchaProvider captchaProvider;
         private string userAgent;
-        private readonly bool randomUserAgent;
 
         private HttpClient httpClient;
         private CloudflareHandler cloudflareHandler;
@@ -64,12 +63,19 @@ namespace CloudflareSolverRe
         public CloudflareSolver(ICaptchaProvider captchaProvider, [Optional]string userAgent)
         {
             this.captchaProvider = captchaProvider;
-            randomUserAgent = userAgent == null;
+            this.userAgent = userAgent ?? Utils.GetGenerateRandomUserAgent();
             captchaDetectResults = new List<DetectResult>();
         }
 
 
-        public async Task<SolveResult> Solve(Uri siteUrl, [Optional]IWebProxy proxy, [Optional]CancellationToken? cancellationToken)
+        /// <summary>
+        /// Solves cloudflare challenge protecting a specific website.
+        /// </summary>
+        /// <param name="siteUrl">Uri of the website.</param>
+        /// <param name="proxy">Proxy to use while solving the challenge.</param>
+        /// <param name="cancellationToken">CancellationToken to contol solving operation cancelling.</param>
+        /// <param name="randomUserAgent">Use a new random user-agent.</param>
+        public async Task<SolveResult> Solve(Uri siteUrl, [Optional]IWebProxy proxy, [Optional]CancellationToken cancellationToken, bool randomUserAgent = false)
         {
             userAgent = randomUserAgent ? Utils.GetGenerateRandomUserAgent() : userAgent;
             cloudflareHandler = new CloudflareHandler(userAgent);
@@ -86,16 +92,30 @@ namespace CloudflareSolverRe
             return result;
         }
 
-        public async Task<SolveResult> Solve(HttpClient httpClient, HttpClientHandler httpClientHandler, Uri siteUrl, [Optional]IWebProxy proxy, CancellationToken? cancellationToken = null)
+        /// <summary>
+        /// Solves cloudflare challenge protecting a specific website.
+        /// </summary>
+        /// <param name="httpClient">HttpClient to use in challenge solving process.</param>
+        /// <param name="httpClientHandler">HttpClientHandler of the HttpClient.</param>
+        /// <param name="siteUrl">Uri of the website.</param>
+        /// <param name="cancellationToken">CancellationToken to contol solving operation cancelling.</param>
+        /// <param name="randomUserAgent">Use a new random user-agent.</param>
+        public async Task<SolveResult> Solve(HttpClient httpClient, HttpClientHandler httpClientHandler, Uri siteUrl, [Optional]CancellationToken cancellationToken, bool randomUserAgent = false)
         {
+            userAgent = randomUserAgent ? Utils.GetGenerateRandomUserAgent() : userAgent;
             var cloudflareHandler = new CloudflareHandler(httpClientHandler, userAgent);
-            cloudflareHandler.HttpClientHandler.Proxy = proxy;
             return await Solve(httpClient, cloudflareHandler, siteUrl, cancellationToken);
         }
 
-        internal async Task<SolveResult> Solve(HttpClient httpClient, CloudflareHandler cloudflareHandler, Uri siteUrl, CancellationToken? cancellationToken = null)
+        /// <summary>
+        /// Solves cloudflare challenge protecting a specific website.
+        /// </summary>
+        /// <param name="httpClient">HttpClient to use in challenge solving process.</param>
+        /// <param name="cloudflareHandler">CloudflareHandler of the HttpClient</param>
+        /// <param name="siteUrl">Uri of the website.</param>
+        /// <param name="cancellationToken">CancellationToken to contol solving operation cancelling.</param>
+        internal async Task<SolveResult> Solve(HttpClient httpClient, CloudflareHandler cloudflareHandler, Uri siteUrl, [Optional]CancellationToken cancellationToken)
         {
-            userAgent = randomUserAgent ? Utils.GetGenerateRandomUserAgent() : userAgent;
             this.cloudflareHandler = cloudflareHandler;
             this.httpClient = httpClient.Clone(this.cloudflareHandler, false);
             this.siteUrl = siteUrl;
@@ -107,7 +127,7 @@ namespace CloudflareSolverRe
             captchaDetectResults.Clear();
 
             return result;
-        }        
+        }
 
         private async Task<SolveResult> Solve()
         {
@@ -145,7 +165,7 @@ namespace CloudflareSolverRe
                     cancellationToken.Value.ThrowIfCancellationRequested();
 
                 var captchaDetectResult = captchaDetectResults.Count > i ? (DetectResult?)captchaDetectResults[i] : null;
-                result = await SolveCaptchaChallenge(captchaDetectResult);                
+                result = await SolveCaptchaChallenge(captchaDetectResult);
             }
 
             return result;
@@ -234,6 +254,6 @@ namespace CloudflareSolverRe
                 uri = uri.ForceHttp();
 
             return uri;
-        }        
+        }
     }
 }
