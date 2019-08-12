@@ -86,10 +86,10 @@ namespace CloudflareSolverRe
             return result;
         }
 
-
-        public async Task<SolveResult> Solve(HttpClient httpClient, HttpClientHandler httpClientHandler, Uri siteUrl, CancellationToken? cancellationToken = null)
+        public async Task<SolveResult> Solve(HttpClient httpClient, HttpClientHandler httpClientHandler, Uri siteUrl, [Optional]IWebProxy proxy, CancellationToken? cancellationToken = null)
         {
             var cloudflareHandler = new CloudflareHandler(httpClientHandler, userAgent);
+            cloudflareHandler.HttpClientHandler.Proxy = proxy;
             return await Solve(httpClient, cloudflareHandler, siteUrl, cancellationToken);
         }
 
@@ -158,7 +158,7 @@ namespace CloudflareSolverRe
 
             if (!jsDetectResult.HasValue)
             {
-                jsDetectResult = await CloudflareDetector.Detect(httpClient, cloudflareHandler, siteUrl);
+                jsDetectResult = await CloudflareDetector.Detect(httpClient, siteUrl);
                 siteUrl = ChangeUrlScheme(siteUrl, jsDetectResult.Value.SupportsHttp);
             }
 
@@ -184,7 +184,7 @@ namespace CloudflareSolverRe
 
             if (!captchaDetectResult.HasValue)
             {
-                captchaDetectResult = await CloudflareDetector.Detect(httpClient, cloudflareHandler, siteUrl);
+                captchaDetectResult = await CloudflareDetector.Detect(httpClient, siteUrl);
                 siteUrl = ChangeUrlScheme(siteUrl, captchaDetectResult.Value.SupportsHttp);
             }
 

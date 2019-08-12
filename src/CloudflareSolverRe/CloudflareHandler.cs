@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace CloudflareSolverRe
 {
-    public class CloudflareHandler : DelegatingHandler
+    internal class CloudflareHandler : DelegatingHandler
     {
         private readonly string userAgent;
 
