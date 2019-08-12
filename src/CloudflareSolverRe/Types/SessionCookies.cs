@@ -11,29 +11,56 @@ namespace CloudflareSolverRe.Types
         internal const string IdCookieName = "__cfduid";
         internal const string ClearanceCookieName = "cf_clearance";
 
+        private readonly Uri siteUri;
+
         public Cookie Cfduid { get; set; }
         public Cookie Cf_Clearance { get; set; }
         public bool Valid => Cfduid != null && Cf_Clearance != null;
 
-        public SessionCookies()
+        public SessionCookies(Uri siteUri)
         {
-
+            this.siteUri = siteUri;
         }
 
-        public SessionCookies(Cookie cfduid, Cookie cf_clearance)
+        public SessionCookies(Cookie cfduid, Cookie cf_clearance, Uri siteUri)
         {
             this.Cfduid = cfduid;
             this.Cf_Clearance = cf_clearance;
+            this.siteUri = siteUri;
         }
+
 
         public static SessionCookies FromCookieContainer(CookieContainer cookieContainer, Uri uri)
         {
-            return new SessionCookies
+            return new SessionCookies(uri)
             {
                 Cfduid = cookieContainer.GetCookie(uri, IdCookieName),
                 Cf_Clearance = cookieContainer.GetCookie(uri, ClearanceCookieName)
             };
-        }        
+        }
+
+        public static SessionCookies FromCookieCollection(CookieCollection cookieCollection, Uri uri)
+        {
+            var cookies = cookieCollection.Cast<Cookie>();
+
+            return new SessionCookies(uri)
+            {
+                Cfduid = cookies.FirstOrDefault(c => c.Name.Equals(IdCookieName)),
+                Cf_Clearance = cookies.FirstOrDefault(c => c.Name.Equals(ClearanceCookieName))
+            };
+        }
+
+
+        public CookieContainer AsCookieContainer()
+        {
+            var cookieContainer = new CookieContainer();
+            cookieContainer.Add(siteUri, Cfduid);
+            cookieContainer.Add(siteUri, Cf_Clearance);
+            return cookieContainer;
+        }
+
+        public CookieCollection AsCookieCollection => new CookieCollection { Cfduid, Cf_Clearance };
+
 
         public override bool Equals(object obj) => Equals(obj as SessionCookies);
 

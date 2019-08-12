@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace CloudflareSolverRe.Solvers
 {
-    internal class JsChallengeSolver : ChallengeSolver, IClearanceDelayable
+    internal class JsChallengeSolver : ChallengeSolver
     {
         /// <summary>
         /// Gets or sets the number of milliseconds to wait before sending the clearance request.
@@ -35,7 +35,7 @@ namespace CloudflareSolverRe.Solvers
         }
 
 
-        public new async Task<SolveResult> Solve()
+        internal new async Task<SolveResult> Solve()
         {
             var solution = await SolveChallenge(DetectResult.Html);
 
@@ -77,21 +77,23 @@ namespace CloudflareSolverRe.Solvers
 
         private SolveResult GetSolveResult(HttpResponseMessage submissionResponse)
         {
+            var sessionCookies = SessionCookies.FromCookieContainer(CloudflareHandler.HttpClientHandler.CookieContainer, SiteUrl);
+
             if (submissionResponse.StatusCode == HttpStatusCode.Found)
             {
                 var success = submissionResponse.Headers.Contains(HttpHeaders.SetCookie) &&
                     submissionResponse.Headers.GetValues(HttpHeaders.SetCookie)
                     .Any(cookieValue => cookieValue.Contains(SessionCookies.ClearanceCookieName));
 
-                return new SolveResult(success, LayerJavaScript, success ? null : Errors.ClearanceCookieNotFound, DetectResult, UserAgent, submissionResponse); // "invalid submit response"
+                return new SolveResult(success, LayerJavaScript, success ? null : Errors.ClearanceCookieNotFound, DetectResult, sessionCookies, UserAgent, submissionResponse); // "invalid submit response"
             }
             else if (submissionResponse.StatusCode == HttpStatusCode.Forbidden)
             {
-                return new SolveResult(false, LayerCaptcha, Errors.CaptchaSolverRequired, DetectResult, UserAgent, submissionResponse);
+                return new SolveResult(false, LayerCaptcha, Errors.CaptchaSolverRequired, DetectResult, sessionCookies, UserAgent, submissionResponse);
             }
             else
             {
-                return new SolveResult(false, LayerJavaScript, Errors.SomethingWrongHappened, DetectResult, UserAgent, submissionResponse);
+                return new SolveResult(false, LayerJavaScript, Errors.SomethingWrongHappened, DetectResult, sessionCookies, UserAgent, submissionResponse);
             }
         }
 

@@ -15,7 +15,7 @@ namespace CloudflareSolverRe
     {
         private readonly string userAgent;
 
-        private HttpClientHandler HttpClientHandler => InnerHandler.GetMostInnerHandler() as HttpClientHandler;
+        internal HttpClientHandler HttpClientHandler => InnerHandler.GetMostInnerHandler() as HttpClientHandler;
 
 
         /// <summary>

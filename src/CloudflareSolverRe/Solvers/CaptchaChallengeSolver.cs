@@ -30,7 +30,7 @@ namespace CloudflareSolverRe.Solvers
         }
 
 
-        public new async Task<SolveResult> Solve()
+        internal new async Task<SolveResult> Solve()
         {
             if (!CaptchaSolvingEnabled)
             {
@@ -58,7 +58,7 @@ namespace CloudflareSolverRe.Solvers
             var result = await challenge.Solve(captchaProvider);
 
             if (!result.Success)
-                return new SolveResult(false, LayerCaptcha, $"captcha provider error ({result.Response})", DetectResult, UserAgent);
+                return new SolveResult(false, LayerCaptcha, $"captcha provider error ({result.Response})", DetectResult);
 
             var solution = new CaptchaChallengeSolution(challenge, result.Response);
 
@@ -77,17 +77,19 @@ namespace CloudflareSolverRe.Solvers
 
         private SolveResult GetSolveResult(HttpResponseMessage submissionResponse)
         {
+            var sessionCookies = SessionCookies.FromCookieContainer(CloudflareHandler.HttpClientHandler.CookieContainer, SiteUrl);
+
             if (submissionResponse.StatusCode.Equals(HttpStatusCode.Found))
             {
                 var success = submissionResponse.Headers.Contains(HttpHeaders.SetCookie) &&
                     submissionResponse.Headers.GetValues(HttpHeaders.SetCookie)
                     .Any(cookieValue => cookieValue.Contains(SessionCookies.ClearanceCookieName));
 
-                return new SolveResult(success, LayerCaptcha, success ? null : Errors.ClearanceCookieNotFound, DetectResult, UserAgent, submissionResponse);
+                return new SolveResult(success, LayerCaptcha, success ? null : Errors.ClearanceCookieNotFound, DetectResult, sessionCookies, UserAgent, submissionResponse);
             }
             else
             {
-                return new SolveResult(false, LayerCaptcha, Errors.SomethingWrongHappened, DetectResult, UserAgent, submissionResponse); //"invalid submit response"
+                return new SolveResult(false, LayerCaptcha, Errors.SomethingWrongHappened, DetectResult, sessionCookies, UserAgent, submissionResponse); //"invalid submit response"
             }
         }
 

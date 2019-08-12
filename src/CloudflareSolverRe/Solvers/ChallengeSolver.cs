@@ -16,7 +16,6 @@ namespace CloudflareSolverRe.Solvers
         protected string UserAgent { get; }
         protected Uri SiteUrl { get; }
 
-
         internal ChallengeSolver(HttpClient client, CloudflareHandler handler, Uri siteUrl, DetectResult detectResult, string userAgent)
         {
             HttpClient = client;
@@ -32,11 +31,10 @@ namespace CloudflareSolverRe.Solvers
         }
 
 
-        public virtual Task<SolveResult> Solve()
+        internal virtual Task<SolveResult> Solve()
         {
             throw new NotImplementedException();
         }
-
 
     }
 }
