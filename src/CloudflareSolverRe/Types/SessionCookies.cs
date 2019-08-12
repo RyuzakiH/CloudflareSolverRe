@@ -59,7 +59,9 @@ namespace CloudflareSolverRe.Types
             return cookieContainer;
         }
 
-        public CookieCollection AsCookieCollection => new CookieCollection { Cfduid, Cf_Clearance };
+        public CookieCollection AsCookieCollection() => new CookieCollection { Cfduid, Cf_Clearance };
+
+        public string AsHeaderString() => Valid ? $"{Cfduid.ToHeaderValue()};{Cf_Clearance.ToHeaderValue()};" : "";
 
 
         public override bool Equals(object obj) => Equals(obj as SessionCookies);
