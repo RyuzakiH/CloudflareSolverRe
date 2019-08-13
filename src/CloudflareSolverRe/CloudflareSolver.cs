@@ -16,6 +16,8 @@ namespace CloudflareSolverRe
 {
     public class CloudflareSolver : ICloudflareSolver
     {
+        private static readonly SemaphoreLocker _locker = new SemaphoreLocker();
+
         /// <summary>
         /// The default number of retries, if clearance fails.
         /// </summary>
@@ -77,17 +79,22 @@ namespace CloudflareSolverRe
         /// <param name="randomUserAgent">Use a new random user-agent.</param>
         public async Task<SolveResult> Solve(Uri siteUrl, [Optional]IWebProxy proxy, [Optional]CancellationToken cancellationToken, bool randomUserAgent = false)
         {
-            userAgent = randomUserAgent ? Utils.GetGenerateRandomUserAgent() : userAgent;
-            cloudflareHandler = new CloudflareHandler(userAgent);
-            cloudflareHandler.HttpClientHandler.Proxy = proxy;
-            httpClient = new HttpClient(cloudflareHandler);
-            this.siteUrl = siteUrl;
-            this.cancellationToken = cancellationToken;
+            SolveResult result = default(SolveResult);
 
-            var result = await Solve();
+            await _locker.LockAsync(async () =>
+            {
+                userAgent = randomUserAgent ? Utils.GetGenerateRandomUserAgent() : userAgent;
+                cloudflareHandler = new CloudflareHandler(userAgent);
+                cloudflareHandler.HttpClientHandler.Proxy = proxy;
+                httpClient = new HttpClient(cloudflareHandler);
+                this.siteUrl = siteUrl;
+                this.cancellationToken = cancellationToken;
 
-            httpClient.Dispose();
-            captchaDetectResults.Clear();
+                result = await Solve();
+
+                httpClient.Dispose();
+                captchaDetectResults.Clear();
+            });
 
             return result;
         }
@@ -102,9 +109,16 @@ namespace CloudflareSolverRe
         /// <param name="randomUserAgent">Use a new random user-agent.</param>
         public async Task<SolveResult> Solve(HttpClient httpClient, HttpClientHandler httpClientHandler, Uri siteUrl, [Optional]CancellationToken cancellationToken, bool randomUserAgent = false)
         {
-            userAgent = randomUserAgent ? Utils.GetGenerateRandomUserAgent() : userAgent;
-            var cloudflareHandler = new CloudflareHandler(httpClientHandler, userAgent);
-            return await Solve(httpClient, cloudflareHandler, siteUrl, cancellationToken);
+            SolveResult result = default(SolveResult);
+
+            await _locker.LockAsync(async () =>
+            {
+                userAgent = randomUserAgent ? Utils.GetGenerateRandomUserAgent() : userAgent;
+                var cloudflareHandler = new CloudflareHandler(httpClientHandler, userAgent);
+                result = await Solve(httpClient, cloudflareHandler, siteUrl, cancellationToken);
+            });
+
+            return result;
         }
 
         /// <summary>

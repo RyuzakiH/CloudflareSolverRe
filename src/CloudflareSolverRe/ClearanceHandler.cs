@@ -14,11 +14,8 @@ using System.Threading.Tasks;
 namespace CloudflareSolverRe
 {
     /// <summary>
-    /// A HTTP handler that transparently manages Cloudflare's Anti-DDoS measure.
+    /// A HTTP handler that transparently manages Cloudflare's protection bypass.
     /// </summary>
-    /// <remarks>
-    /// Only the JavaScript challenge can be handled. CAPTCHA and IP address blocking cannot be bypassed.
-    /// </remarks>
     public class ClearanceHandler : DelegatingHandler, ICloudflareSolver
     {
         private readonly CookieContainer _cookies;

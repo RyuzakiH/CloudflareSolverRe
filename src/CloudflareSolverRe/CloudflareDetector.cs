@@ -1,5 +1,6 @@
 ﻿using CloudflareSolverRe.Extensions;
 using CloudflareSolverRe.Types;
+using CloudflareSolverRe.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,8 @@ namespace CloudflareSolverRe
     public class CloudflareDetector
     {
         private static readonly IEnumerable<string> CloudflareServerNames = new[] { "cloudflare", "cloudflare-nginx" };
+
+        private static readonly SemaphoreLocker _locker = new SemaphoreLocker();
 
         /// <summary>
         /// Checks if the response declaring that the website is protected by cloudflare.
@@ -47,11 +50,16 @@ namespace CloudflareSolverRe
         /// <param name="requireHttps">Https is required.</param>
         public static async Task<DetectResult> Detect(HttpClient httpClient, HttpClientHandler httpClientHandler, Uri targetUri, bool requireHttps = false)
         {
-            var cloudflareHandler = new CloudflareHandler(httpClientHandler);
+            DetectResult result = default(DetectResult);
 
-            var result = await Detect(httpClient, cloudflareHandler, targetUri, requireHttps);
+            await _locker.LockAsync(async () =>
+            {
+                var cloudflareHandler = new CloudflareHandler(httpClientHandler);
 
-            cloudflareHandler.Dispose();
+                result = await Detect(httpClient, cloudflareHandler, targetUri, requireHttps);
+
+                //cloudflareHandler.Dispose();
+            });
 
             return result;
         }
@@ -91,16 +99,21 @@ namespace CloudflareSolverRe
         /// <param name="requireHttps">Https is required.</param>
         internal static async Task<DetectResult> Detect(HttpClient httpClient, Uri targetUri, bool requireHttps = false)
         {
-            if (!requireHttps)
-                targetUri = targetUri.ForceHttp();
+            DetectResult detectResult = default(DetectResult);
 
-            var detectResult = await Detect(httpClient, targetUri);
-
-            if (detectResult.Protection.Equals(CloudflareProtection.Unknown) && !detectResult.SupportsHttp)
+            await _locker.LockAsync(async () =>
             {
-                targetUri = targetUri.ForceHttps();
+                if (!requireHttps)
+                    targetUri = targetUri.ForceHttp();
+
                 detectResult = await Detect(httpClient, targetUri);
-            }
+
+                if (detectResult.Protection.Equals(CloudflareProtection.Unknown) && !detectResult.SupportsHttp)
+                {
+                    targetUri = targetUri.ForceHttps();
+                    detectResult = await Detect(httpClient, targetUri);
+                }
+            });
 
             return detectResult;
         }
@@ -162,8 +175,7 @@ namespace CloudflareSolverRe
                 };
             }
 
-            //if ((response.Headers.Contains("CF-RAY")) && (response.IsSuccessStatusCode || _statusCodeWhitelist.Contains((int)response.StatusCode)))
-            if (!IsCloudflareProtected(response))
+            if (!IsCloudflareProtected(response) || response.Headers.Contains("CF-RAY") && response.IsSuccessStatusCode)
             {
                 return new DetectResult
                 {
