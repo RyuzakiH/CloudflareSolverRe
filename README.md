@@ -42,6 +42,13 @@ In case you need to use captcha solvers:
 
 If you want to use another captcha provider, see [How to implement a captcha provider?](#implement-a-captcha-provider)
 
+# Issues
+Cloudflare regularly modifies their IUAM protection challenge and improves their bot detection capabilities.
+
+If you notice that the anti-bot page has changed, or if library suddenly stops working, please create a GitHub issue so that I can update the code accordingly.
+
+Before submitting an issue, just be sure that you have the latest version of the library.
+
 # Usage
 
 - ### ClearanceHandler
