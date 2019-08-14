@@ -8,7 +8,7 @@ namespace CloudflareSolverRe.Types.Javascript
 {
     public class JsChallenge
     {
-        private static readonly Regex JsChallengeRegex = new Regex(@"<script.*?>(?<script>.*?var s,t,o,p,b,r,e,a,k,i,n,g,\w, (?<className>\w+?)={""(?<propName>\w+?)"":(?<propValue>.*?)};.*?(?<calculations>\s*?\w+?\.\w+?[+\-*\/]=(?:(?<normal>(?:\+|\(|\)|\!|\[|\]|\/)+?;)|(?<charCode>(?:\+|\(|\)|\!|\[|\]|\/)+?\(function.*?}\(.*?\)\)\);)|(?<cfdn>function\(.\)\{var.*?;\s.*?;)))+.*?a\.value\s=\s\(\+\w+\.\w+(\s\+\s(?<addHostLength>t\.length))*?\)\.toFixed\((?<round>\d+)\);.*?},\s*(?<delay>\d+)\);.*?)<\/script>.*?<form.+?action=""(?<action>\S+?)"".*?>.*?name=""s"" value=""(?<s>\S+)"".*?name=""jschl_vc"" value=""(?<jschl_vc>[a-z0-9]{32})"".*?name=""pass"" value=""(?<pass>\S+?)"".*?id=""cf-dn-\S+"">(?<cf_dn>.*?)<\/div>", RegexOptions.Singleline/* | RegexOptions.Compiled*/);
+        private static readonly Regex JsChallengeRegex = new Regex(@"<script.*?>(?<script>.*?var s,t,o,p,b,r,e,a,k,i,n,g,\w, (?<className>\w+?)={""(?<propName>\w+?)"":(?<propValue>.*?)};.*?(?<calculations>\s*?\w+?\.\w+?[+\-*\/]=(?:(?<normal>(?:\+|\(|\)|\!|\[|\]|\/)+?;)|(?<charCode>(?:\+|\(|\)|\!|\[|\]|\/)+?\(function.*?}\(.*?\)\)\);)|(?<cfdn>function\(.\)\{var.*?;\s.*?;)))+.*?a\.value\s=\s\(\+\w+\.\w+(\s\+\s(?<addHostLength>t\.length))*?\)\.toFixed\((?<round>\d+)\);.*?},\s*(?<delay>\d+)\);.*?)<\/script>.*?<form.+?action=""(?<action>\S+?)"".*?>.*?name=""s"" value=""(?<s>\S+)"".*?name=""jschl_vc"" value=""(?<jschl_vc>[a-z0-9]{32})"".*?name=""pass"" value=""(?<pass>\S+?)"".*?(id=""cf-dn-\S+"">(?<cf_dn>.*?)</div>){0,1}\s+</div>\s+?<div class=""attribution"">", RegexOptions.Singleline/* | RegexOptions.Compiled*/);
 
         public JsScript Script { get; set; }
         public JsForm Form { get; set; }

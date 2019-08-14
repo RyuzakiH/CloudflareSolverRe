@@ -116,6 +116,9 @@ namespace CloudflareSolverRe
                 userAgent = randomUserAgent ? Utils.GetGenerateRandomUserAgent() : userAgent;
                 var cloudflareHandler = new CloudflareHandler(httpClientHandler, userAgent);
                 result = await Solve(httpClient, cloudflareHandler, siteUrl, cancellationToken);
+
+                httpClient.DefaultRequestHeaders.UserAgent.Clear();
+                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(result.UserAgent);
             });
 
             return result;
