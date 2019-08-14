@@ -8,8 +8,9 @@
     <PackageProjectUrl>https://github.com/RyuzakiH/CloudflareSolverRe</PackageProjectUrl>
     <PackageTags>cloudflare, solver, bypass, protection, solving, library, cloudflaresolver, delegatinghandler, recaptcha, captcha, javascript, challenge, utilities</PackageTags>
     <Description>Extends CloudflareSolverRe, contains captcha providers (2Captcha, AntiCaptcha) that helps solving cloudflare captcha challenge.</Description>
-    <Version>1.0.3</Version>
+    <Version>1.0.4</Version>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <RepositoryUrl>https://github.com/RyuzakiH/CloudflareSolverRe</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
