@@ -4,9 +4,13 @@
     {
         static void Main(string[] args)
         {
-            ClearanceHandlerSample.Sample();
+            //ClearanceHandlerSample.Sample().Wait();
 
-            CloudflareSolverSample.Sample();
+            //CloudflareSolverSample.Sample().Wait();
+
+            //IntegrationSample.WebClientSample().Wait();
+
+            IntegrationSample.HttpWebRequestSample().Wait();
         }
     }
 }
