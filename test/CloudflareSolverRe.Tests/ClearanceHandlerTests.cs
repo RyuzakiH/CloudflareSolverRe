@@ -10,8 +10,10 @@ namespace CloudflareSolverRe.Tests
     [TestClass]
     public class ClearanceHandlerTests
     {
+        private static readonly Uri uamhitmehardfunUri = new Uri("https://uam.hitmehard.fun/HIT");
+
         [TestMethod]
-        public void SolveWebsiteChallenge_uamhitmehardfun()
+        public async Task SolveWebsiteChallenge_uamhitmehardfun()
         {
             var target = new Uri("https://uam.hitmehard.fun/HIT");
 
@@ -22,58 +24,52 @@ namespace CloudflareSolverRe.Tests
             };
 
             var client = new HttpClient(handler);
-            client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0");
 
-            var content = client.GetStringAsync(target).Result;
+            var content = await client.GetStringAsync(uamhitmehardfunUri);
+
             Assert.AreEqual("Dstat.cc is the best", content);
         }
 
         [TestMethod]
-        public void SolveWebsiteChallenge_uamhitmehardfun_WithAntiCaptcha()
+        public async Task SolveWebsiteChallenge_uamhitmehardfun_WithAntiCaptcha()
         {
             if (Settings.AntiCaptchaApiKey.Equals("YOUR_API_KEY"))
                 return;
 
-            var target = new Uri("https://uam.hitmehard.fun/HIT");
-
             var handler = new ClearanceHandler(new AntiCaptchaProvider(Settings.AntiCaptchaApiKey))
             {
-                MaxTries = 3,
-                MaxCaptchaTries = 2,
-                //ClearanceDelay = 3000  // Default value is the delay time determined in challenge code (not required in captcha)
+                MaxTries = 2,
+                MaxCaptchaTries = 2
             };
 
             var client = new HttpClient(handler);
-            client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0");
 
-            var content = client.GetStringAsync(target).Result;
+            var content = await client.GetStringAsync(uamhitmehardfunUri);
+
             Assert.AreEqual("Dstat.cc is the best", content);
         }
 
         [TestMethod]
-        public void SolveWebsiteChallenge_uamhitmehardfun_With2Captcha()
+        public async Task SolveWebsiteChallenge_uamhitmehardfun_With2Captcha()
         {
             if (Settings.TwoCaptchaApiKey.Equals("YOUR_API_KEY"))
                 return;
 
-            var target = new Uri("https://uam.hitmehard.fun/HIT");
-
             var handler = new ClearanceHandler(new TwoCaptchaProvider(Settings.TwoCaptchaApiKey))
             {
-                MaxTries = 3,
-                MaxCaptchaTries = 2,
-                //ClearanceDelay = 3000  // Default value is the delay time determined in challenge code (not required in captcha)
+                MaxTries = 2,
+                MaxCaptchaTries = 2
             };
 
             var client = new HttpClient(handler);
-            client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0");
 
-            var content = client.GetStringAsync(target).Result;
+            var content = await client.GetStringAsync(uamhitmehardfunUri);
+
             Assert.AreEqual("Dstat.cc is the best", content);
         }
 
         [TestMethod]
-        public void SolveWebsiteChallenge_github()
+        public async Task SolveWebsiteChallenge_github()
         {
             var target = new Uri("https://github.com/RyuzakiH/CloudflareSolverRe");
 
@@ -84,9 +80,9 @@ namespace CloudflareSolverRe.Tests
             };
 
             var client = new HttpClient(handler);
-            client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0");
 
-            var content = client.GetStringAsync(target).Result;
+            var content = await client.GetStringAsync(target);
+
             Assert.IsTrue(content.Contains("RyuzakiH"));
         }
     }

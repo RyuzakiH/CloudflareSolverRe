@@ -2,44 +2,41 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace CloudflareSolverRe.Tests
 {
     [TestClass]
     public class CloudflareSolverTests
     {
-        [TestMethod]
-        public void SolveWebsiteChallenge_uamhitmehardfun()
-        {
-            var uri = new Uri("https://uam.hitmehard.fun/HIT");
+        private static readonly Uri uamhitmehardfunUri = new Uri("https://uam.hitmehard.fun/HIT");
 
+        [TestMethod]
+        public async Task SolveWebsiteChallenge_uamhitmehardfun()
+        {
             var cf = new CloudflareSolver
             {
                 MaxTries = 3,
                 ClearanceDelay = 3000
             };
 
-            var httpClientHandler = new HttpClientHandler();
-            var httpClient = new HttpClient(httpClientHandler);
-            httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0");
+            var handler = new HttpClientHandler();
+            var client = new HttpClient(handler);
 
-            var result = cf.Solve(httpClient, httpClientHandler, uri).Result;
+            var result = await cf.Solve(client, handler, uamhitmehardfunUri);
 
             Assert.IsTrue(result.Success);
 
-            var response = httpClient.GetAsync(uri).Result;
-            var html = response.Content.ReadAsStringAsync().Result;
+            var content = await client.GetStringAsync(uamhitmehardfunUri);
 
-            Assert.AreEqual("Dstat.cc is the best", html);
+            Assert.AreEqual("Dstat.cc is the best", content);
         }
 
         [TestMethod]
-        public void SolveWebsiteChallenge_uamhitmehardfun_WithAntiCaptcha()
+        public async Task SolveWebsiteChallenge_uamhitmehardfun_WithAntiCaptcha()
         {
             if (Settings.AntiCaptchaApiKey.Equals("YOUR_API_KEY"))
                 return;
-
-            var target = new Uri("https://uam.hitmehard.fun/HIT");
 
             var cf = new CloudflareSolver(new AntiCaptchaProvider(Settings.AntiCaptchaApiKey))
             {
@@ -47,27 +44,23 @@ namespace CloudflareSolverRe.Tests
                 MaxCaptchaTries = 2
             };
 
-            var httpClientHandler = new HttpClientHandler();
-            var httpClient = new HttpClient(httpClientHandler);
-            httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0");
+            var handler = new HttpClientHandler();
+            var client = new HttpClient(handler);
 
-            var result = cf.Solve(httpClient, httpClientHandler, target).Result;
+            var result = await cf.Solve(client, handler, uamhitmehardfunUri);
 
             Assert.IsTrue(result.Success);
 
-            var response = httpClient.GetAsync(target).Result;
-            var html = response.Content.ReadAsStringAsync().Result;
+            var content = await client.GetStringAsync(uamhitmehardfunUri);
 
-            Assert.AreEqual("Dstat.cc is the best", html);
+            Assert.AreEqual("Dstat.cc is the best", content);
         }
 
         [TestMethod]
-        public void SolveWebsiteChallenge_uamhitmehardfun_With2Captcha()
+        public async Task SolveWebsiteChallenge_uamhitmehardfun_With2Captcha()
         {
             if (Settings.TwoCaptchaApiKey.Equals("YOUR_API_KEY"))
                 return;
-
-            var target = new Uri("https://uam.hitmehard.fun/HIT");
 
             var cf = new CloudflareSolver(new TwoCaptchaProvider(Settings.TwoCaptchaApiKey))
             {
@@ -75,18 +68,16 @@ namespace CloudflareSolverRe.Tests
                 MaxCaptchaTries = 2
             };
 
-            var httpClientHandler = new HttpClientHandler();
-            var httpClient = new HttpClient(httpClientHandler);
-            httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0");
+            var handler = new HttpClientHandler();
+            var client = new HttpClient(handler);
 
-            var result = cf.Solve(httpClient, httpClientHandler, target).Result;
+            var result = await cf.Solve(client, handler, uamhitmehardfunUri);
 
             Assert.IsTrue(result.Success);
 
-            var response = httpClient.GetAsync(target).Result;
-            var html = response.Content.ReadAsStringAsync().Result;
+            var content = await client.GetStringAsync(uamhitmehardfunUri);
 
-            Assert.AreEqual("Dstat.cc is the best", html);
+            Assert.AreEqual("Dstat.cc is the best", content);
         }
     }
 }
