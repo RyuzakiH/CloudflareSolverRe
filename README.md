@@ -20,7 +20,7 @@ This process is automatic. Your browser will redirect to your requested content 
 Please allow up to 5 seconds...
 ```
 
-Any script using cloudflare-scrape will sleep for 4 to 5 seconds for the first visit to any site with Cloudflare IUAM enabled, though no delay will occur after the first request.
+The first visit to any site with Cloudflare IUAM enabled will sleep for 4 to 5 seconds until the challenge is solved, though no delay will occur after the first request.
 
 # Installation
 Full-Featured library:
