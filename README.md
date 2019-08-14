@@ -4,15 +4,23 @@ CloudflareSolverRe
 [![NuGet](https://img.shields.io/nuget/v/CloudflareSolverRe.svg?maxAge=60)](https://www.nuget.org/packages/CloudflareSolverRe)
 [![NuGet](https://img.shields.io/nuget/v/CloudflareSolverRe.Captcha.svg?maxAge=60)](https://www.nuget.org/packages/CloudflareSolverRe.Captcha)
 
-Cloudflare Javascript & reCaptcha v2 challenge (Under Attack Mode) solving/bypass .NET Standard library.
+Cloudflare Javascript & reCaptcha challenge (I'm Under Attack Mode or IUAM) solving/bypass .NET Standard library.
 
 _Reawakening of [CloudflareSolver](https://www.nuget.org/packages/CloudflareSolver) (removed) adding the capabilities ([DelegatingHandler](https://msdn.microsoft.com/en-us/library/system.net.http.delegatinghandler(v=vs.110).aspx)) of [CloudFlareUtilities](https://github.com/elcattivo/CloudFlareUtilities) (not working)._
 
-# Features
-- [.NET Standard 1.1](https://github.com/dotnet/standard/blob/master/docs/versions/netstandard1.1.md)
-- Two ways of solving (CloudflareSolver, ClearanceHandler)
-- Captcha challenge solving using any [captcha provider](#implement-a-captcha-provider)
-- No Javascript interpreter required
+This can be useful if you wish to scrape or crawl a website protected with Cloudflare. Cloudflare's IUAM page currently just checks if the client supports JavaScript or requires solving captcha challenge. Fortunately, this library supports both.
+
+For reference, this is the default message Cloudflare uses for these sorts of pages:
+
+```
+Checking your browser before accessing website.com.
+
+This process is automatic. Your browser will redirect to your requested content shortly.
+
+Please allow up to 5 seconds...
+```
+
+Any script using cloudflare-scrape will sleep for 4 to 5 seconds for the first visit to any site with Cloudflare IUAM enabled, though no delay will occur after the first request.
 
 # Installation
 Full-Featured library:
@@ -23,61 +31,83 @@ Or get just javascript challenge solver without the captcha features:
 
 `PM> Install-Package CloudflareSolverRe`
 
+# Dependencies
+- No dependencies (no javaScript interpreter required)
+- [.NET Standard 1.1](https://github.com/dotnet/standard/blob/master/docs/versions/netstandard1.1.md)
+
+In case you need to use captcha solvers:
+#### CloudflareSolverRe.Captcha
+- [2CaptchaAPI](https://www.nuget.org/packages/2CaptchaAPI/)
+- [AntiCaptchaAPI](https://www.nuget.org/packages/AntiCaptchaAPI/)
+
+If you want to use another captcha provider, see [How to implement a captcha provider?](#implement-a-captcha-provider)
+
 # Usage
 
 - ### ClearanceHandler
 
 A [DelegatingHandler](https://docs.microsoft.com/en-us/dotnet/api/system.net.http.delegatinghandler?view=netstandard-1.1) that
-handles the challenge solution.
+handles the challenge solution automatically.
 
 > A type for HTTP handlers that delegate the processing of HTTP response messages to another handler, called the inner handler.
 
 It checks on every request if the clearance is required or not, if required, it solves the challenge in background then returns the response.
 
-```csharp
+Websites not using Cloudflare will be treated normally. You don't need to configure or call anything further, and you can effectively treat all websites as if they're not protected with anything.
 
+```csharp
 var target = new Uri("https://uam.hitmehard.fun/HIT");
 
 var handler = new ClearanceHandler
 {
-    MaxTries = 3, // Default value is 3
-    ClearanceDelay = 3000 // Default value is the delay time determined in challenge code
+    MaxTries = 3,
+    ClearanceDelay = 3000
 };
 
 var client = new HttpClient(handler);
-client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0");
 
-try
-{
-    var content = client.GetStringAsync(target).Result;
-    Console.WriteLine(content);
-}
-catch (AggregateException ex) when (ex.InnerException is CloudFlareClearanceException)
-{
-    // After all retries, clearance still failed.
-    Console.WriteLine(ex.InnerException.Message);
-}
-catch (AggregateException ex) when (ex.InnerException is TaskCanceledException)
-{
-    // Looks like we ran into a timeout. Too many clearance attempts?
-    // Maybe you should increase client.Timeout as each attempt will take about five seconds.
-}
+var content = client.GetStringAsync(target).Result;
+Console.WriteLine(content);
 ```
 
-With Captcha Provider
+
+- ### CloudflareSolver
+The internal challenge solver, that's what happens inside the ClearanceHandler, you can use it directly.
+
+Use it when you already have a HttpClient and you want to solve the challenge manually for some specific website so you can scrape it freely.
 
 ```csharp
+var target = new Uri("https://uam.hitmehard.fun/HIT");
 
-var handler = new ClearanceHandler(new TwoCaptchaProvider("YOUR_API_KEY"))
+var cf = new CloudflareSolver
 {
-    MaxTries = 3, // Default value is 3
-    MaxCaptchaTries = 2, // Default value is 1
-    //ClearanceDelay = 3000  // Default value is the delay time determined in challenge code (not required in captcha)
+    MaxTries = 3,
+    ClearanceDelay = 3000
 };
 
+var handler = new HttpClientHandler();
+var client = new HttpClient(handler);
+
+var result = cf.Solve(client, handler, target).Result;
+
+if (!result.Success)
+{
+    Console.WriteLine($"[Failed] Details: {result.FailReason}");
+    return;
+}
+
+// Once the protection has been bypassed we can use that HttpClient to send the requests as usual
+var content = client.GetStringAsync(target).Result;
+Console.WriteLine($"Server response: {content}");
 ```
 
-To provide an inner handler, there are two ways
+**Full Samples [Here](https://github.com/RyuzakiH/CloudflareSolverRe/tree/master/sample/CloudflareSolverRe.Sample)**
+
+# Options
+### Message Handlers
+To use a message handler ([HttpClientHandler](https://docs.microsoft.com/en-us/dotnet/api/system.net.http.httpclienthandler), [SocketsHttpHandler](https://docs.microsoft.com/en-us/dotnet/api/system.net.http.socketshttphandler), etc.) with ClearanceHandler, provide it as an inner handler.
+
+To provide  an inner handler, there are two ways
 
 1. By setting the InnerHandler property of the ClearanceHandler:
 
@@ -112,57 +142,233 @@ var handler = new ClearanceHandler(httpHandler)
 };
 ```
 
-
-- ### CloudflareSolver
-
-The internal challenge solver, that's what happens inside the ClearanceHandler, you can use it directly.
+### Maximum Tries
+The maximum number of challenge solving tries. Most of the time the minimum tries required are 2 or 3, so default value is 3.
+If you would like to override this number to make sure it always succeed, change MaxTries property.
 
 ```csharp
+var handler = new ClearanceHandler
+{
+    MaxTries = 10
+};
+```
+```csharp
+var cf = new CloudflareSolver
+{
+    MaxTries = 10
+};
+```
 
+Cloudflare challenges are not always javascript challenges, it may be reCaptcha challenges and this library also provides a way to solve these challenges using captcha solvers (2captcha, anti-captcha, etc.).
+
+So, there's MaxCaptchaTries property to set the max number of captcha challenge solving tries (default is 1).
+
+```csharp
+handler.MaxCaptchaTries = 2;
+```
+```csharp
+cf.MaxCaptchaTries = 2;
+```
+
+### Delays
+Normally, when a browser is faced with a Cloudflare IUAM challenge page, Cloudflare requires the browser to wait 4 seconds (default delay) before submitting the challenge answer. If you would like to override this delay, change ClearanceDelay property.
+
+```csharp
+var handler = new ClearanceHandler
+{
+    ClearanceDelay = 5000
+};
+```
+```csharp
+var cf = new CloudflareSolver
+{
+    ClearanceDelay = 5000
+};
+```
+
+### User-Agent
+**User-Agent must be the same as the one used to solve the challenge, otherwise Cloudflare will flag you as a bot.**
+
+You can set the user-agent of ClearanceHandler once and it will be used along with the handler.
+All requests made using that handler will have this user-agent, cannot be changed even if you set the user-agent header explicitly.
+```csharp
+var handler = new ClearanceHandler(
+    userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0");
+```
+If you didn't set it, a random user-agent will be generated, also cannot be changed even if you set the user-agent header explicitly.
+
+Also, you can set the user-agent of CloudflareSolver once and it will be used to solve every challenge.
+But unlike the ClearanceHandler, this user-agent can be changed to a specific value or set to random.
+```csharp
+var cf = new CloudflareSolver(
+    userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0");
+```
+To use a random user-agent set randomUserAgent to true when calling Solve method.
+```csharp
+var result = await cf.Solve(client, handler, target, randomUserAgent: true);
+```
+To use a specific user-agent set userAgent.
+```csharp
+var result = await cf.Solve(client, handler, target, userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0");
+```
+
+
+# Integration
+It's easy to integrate CloudflareSolverRe with other applications and tools. Cloudflare uses two cookies as tokens: 
+
+1. [\__cfuid](https://support.cloudflare.com/hc/en-us/articles/200170156-What-does-the-Cloudflare-cfduid-cookie-do-)
+> The \__cfduid cookie is used to identify individual clients behind a shared IP address and apply security settings on a per-client basis.
+
+2. [cf_clearance](https://blog.cloudflare.com/cloudflare-supports-privacy-pass/)
+> Clearance cookies are like authentication cookies, but instead of being tied to an identity, they are tied to the fact that you solved a challenge sometime in the past.
+
+To bypass the challenge page, simply include both of these cookies (with the appropriate user-agent) in all HTTP requests you make.
+
+**To retrieve working cookies and a user-agent for a specific website:**
+
+```csharp
 var target = new Uri("https://uam.hitmehard.fun/HIT");
 
 var cf = new CloudflareSolver
 {
-    MaxTries = 3, // Default value is 3
-    ClearanceDelay = 3000  // Default value is the delay time determined in challenge code
+    MaxTries = 3,
+    ClearanceDelay = 3000
 };
 
-var httpClientHandler = new HttpClientHandler();
-var httpClient = new HttpClient(httpClientHandler);
-httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0");
+var result = await cf.Solve(target);
+```
 
-var result = cf.Solve(httpClient, httpClientHandler, target).Result;
-if (result.Success)
+Can be used with a proxy:
+```csharp
+IWebProxy proxy = new WebProxy("51.83.15.1:8080");
+
+var result = await cf.Solve(target, proxy);
+```
+
+User-agent can be set to
+1. random:
+```csharp
+var result = await cf.Solve(target, randomUserAgent: true);
+```
+2. specific value
+```csharp
+var result = await cf.Solve(target, userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0");
+```
+
+CancellationToken can be passed to control solving operation cancelling:
+```csharp
+var cancellationToken = new CancellationTokenSource();
+
+var result = await cf.Solve(target, cancellationToken: cancellationToken.Token);
+```
+
+Returns [SolveResult](https://github.com/RyuzakiH/CloudflareSolverRe/blob/master/src/CloudflareSolverRe/Types/SolveResult.cs) struct:
+```csharp
+public struct SolveResult
 {
-    Console.WriteLine($"[Success] Protection bypassed: {result.DetectResult.Protection}");
+    public bool Success; // indicates that challenge solve process succeeded
+    public string FailReason // indicates clearance fail reason, if failed
+    public DetectResult DetectResult; // indicates the protection type found (js, captcha, banned, unknown, no-protection)
+    public string UserAgent; // the user-agent used to solve the challenge (must be used during the session)
+    public SessionCookies Cookies; // the two tokens/cookies to use during the session indicating that we passed the challenge.
 }
-else
+```
+
+Session cookies can be retrieved as
+```csharp
+var cookiesHeaderValue = result.Cookies.AsHeaderString(); // __cfduid=anyvalue;cf_clearance=anyvalue;
+var cookieCollection = result.Cookies.AsCookieCollection();
+var cookieContainer = result.Cookies.AsCookieContainer();
+```
+
+Remember, you must always use the same user-agent when retrieving or using these cookies.
+
+### WebClient
+Here is an example of integrating CloudflareSolver with WebClient. As you can see, all you have to do is pass the cookies and user-agent to the webclient headers.
+
+```csharp
+var target = new Uri("https://uam.hitmehard.fun/HIT");
+
+var cf = new CloudflareSolver
+{
+	MaxTries = 3,
+	ClearanceDelay = 3000
+};
+
+var result = cf.Solve(target).Result;
+
+if (!result.Success)
 {
     Console.WriteLine($"[Failed] Details: {result.FailReason}");
     return;
 }
 
-// Once the protection has been bypassed we can use that httpClient to send the requests as usual
-var response = httpClient.GetAsync(target).Result;
-var html = response.Content.ReadAsStringAsync().Result;
+var client = new WebClient();
+client.Headers.Add(HttpRequestHeader.Cookie, result.Cookies.AsHeaderString());
+client.Headers.Add(HttpRequestHeader.UserAgent, result.UserAgent);
 
-Console.WriteLine($"Server response: {html}");
+var content = client.DownloadString(target);
+Console.WriteLine($"Server response: {content}");
 ```
 
-With Captcha Provider
+### HttpWebRequest
+Here is an example of integrating CloudflareSolver with HttpWebRequest. As you can see, all you have to do is pass the cookies and user-agent to the HttpWebRequest headers.
 
 ```csharp
+var target = new Uri("https://uam.hitmehard.fun/HIT");
 
-var cf = new CloudflareSolver(new TwoCaptchaProvider("YOUR_API_KEY"))
+var cf = new CloudflareSolver
 {
-    MaxTries = 3, // Default value is 3
-    MaxCaptchaTries = 1, // Default value is 1
-    //ClearanceDelay = 3000  // Default value is the delay time determined in challenge code (not required in captcha)
+	MaxTries = 3,
+	ClearanceDelay = 3000
 };
 
+var result = cf.Solve(target).Result;
+
+if (!result.Success)
+{
+    Console.WriteLine($"[Failed] Details: {result.FailReason}");
+    return;
+}
+
+var request = (HttpWebRequest)WebRequest.Create(target);
+request.Headers.Add(HttpRequestHeader.Cookie, result.Cookies.AsHeaderString());
+request.Headers.Add(HttpRequestHeader.UserAgent, result.UserAgent);
+
+var response = (HttpWebResponse)request.GetResponse();
+var content = new StreamReader(response.GetResponseStream()).ReadToEnd();
+Console.WriteLine($"Server response: {content}");
 ```
 
-Full Samples [Here](https://github.com/RyuzakiH/CloudflareSolverRe/tree/master/sample/CloudflareSolverRe.Sample)
+
+# Captcha
+To use captcha solving capabilities, you can install [CloudflareSolverRe.Captcha](https://www.nuget.org/packages/CloudflareSolverRe.Captcha) package which supports the following captcha providers.
+
+- [Anti-Captcha](https://anti-captcha.com)
+- [2captcha](https://2captcha.com)
+
+_If you want to use another captcha solver, see [How to implement a captcha provider?](#implement-a-captcha-provider)_
+
+- ### ClearanceHandler
+
+```csharp
+var handler = new ClearanceHandler(new TwoCaptchaProvider("YOUR_API_KEY"))
+{
+    MaxTries = 3,
+    MaxCaptchaTries = 2
+};
+```
+
+- ### CloudflareSolver
+
+```csharp
+var cf = new CloudflareSolver(new TwoCaptchaProvider("YOUR_API_KEY"))
+{
+    MaxTries = 3,
+    MaxCaptchaTries = 1
+};
+```
+
 
 # Implement a Captcha Provider
 Implement [ICaptchaProvider](https://github.com/RyuzakiH/CloudflareSolverRe/blob/master/src/CloudflareSolverRe/Types/Captcha/ICaptchaProvider.cs) interface.
@@ -207,3 +413,4 @@ public class AntiCaptchaProvider : ICaptchaProvider
 - [spacetorrent.cloud](https://www.spacetorrent.cloud)
 - [codepen](https://codepen.io) (captcha challenges only - js challenges not allowed)
 - [temp-mail](https://temp-mail.org) (not always using cloudflare)
+- [hidemy.name](https://hidemy.name/en/proxy-list/)
