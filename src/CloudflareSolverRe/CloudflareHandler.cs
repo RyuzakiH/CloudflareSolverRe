@@ -92,8 +92,16 @@ namespace CloudflareSolverRe
 
         private void GeneralizeCookies(Uri requestUri)
         {
-            var cookies = HttpClientHandler.CookieContainer.GetCookies(requestUri);
-            foreach (Cookie cookie in cookies)
+            if (requestUri.Scheme.Equals(General.UriSchemeHttp))
+            {
+                var httpsRequestUri = new Uri($"{General.UriSchemeHttps}://{requestUri.Host}{requestUri.PathAndQuery}");
+                var httpsCookies = HttpClientHandler.CookieContainer.GetCookies(httpsRequestUri);
+                foreach (Cookie cookie in httpsCookies)
+                    cookie.Secure = false;
+            }
+
+            var httpCookies = HttpClientHandler.CookieContainer.GetCookies(requestUri);
+            foreach (Cookie cookie in httpCookies)
                 cookie.Secure = false;
         }
 
