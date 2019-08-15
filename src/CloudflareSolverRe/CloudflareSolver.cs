@@ -30,8 +30,9 @@ namespace CloudflareSolverRe
 
 
         private readonly ICaptchaProvider captchaProvider;
+        private readonly string defaultUserAgent;
+
         private string userAgent;
-        private string defaultUserAgent;
 
         private HttpClient httpClient;
         private CloudflareHandler cloudflareHandler;
@@ -147,8 +148,11 @@ namespace CloudflareSolverRe
                 var cloudflareHandler = new CloudflareHandler(httpClientHandler, userAgent);
                 result = await Solve(httpClient, cloudflareHandler, siteUrl, cancellationToken);
 
-                httpClient.DefaultRequestHeaders.UserAgent.Clear();
-                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(result.UserAgent);
+                if (result.UserAgent != null)
+                {
+                    httpClient.DefaultRequestHeaders.UserAgent.Clear();
+                    httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(result.UserAgent);
+                }
             });
 
             return result;
@@ -172,8 +176,11 @@ namespace CloudflareSolverRe
                 var cloudflareHandler = new CloudflareHandler(httpClientHandler, userAgent);
                 result = await Solve(httpClient, cloudflareHandler, siteUrl, cancellationToken);
 
-                httpClient.DefaultRequestHeaders.UserAgent.Clear();
-                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(result.UserAgent);
+                if (result.UserAgent != null)
+                {
+                    httpClient.DefaultRequestHeaders.UserAgent.Clear();
+                    httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(result.UserAgent);
+                }
             });
 
             return result;

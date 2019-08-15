@@ -1,4 +1,5 @@
-﻿using CloudflareSolverRe.Extensions;
+﻿using CloudflareSolverRe.Constants;
+using CloudflareSolverRe.Extensions;
 using CloudflareSolverRe.Types;
 using CloudflareSolverRe.Utilities;
 using System;
@@ -112,6 +113,7 @@ namespace CloudflareSolverRe
                 {
                     targetUri = targetUri.ForceHttps();
                     detectResult = await Detect(httpClient, targetUri);
+                    detectResult.SupportsHttp = false;
                 }
             });
 
@@ -166,7 +168,7 @@ namespace CloudflareSolverRe
                 }
             }
 
-            if (response.StatusCode.Equals(HttpStatusCode.MovedPermanently) && response.Headers.Location != null && response.Headers.Location.Scheme.Equals("https"))
+            if (response.StatusCode.Equals(HttpStatusCode.MovedPermanently) && response.Headers.Location != null && response.Headers.Location.Scheme.Equals(General.UriSchemeHttps))
             {
                 return new DetectResult
                 {
