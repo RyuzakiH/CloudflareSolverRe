@@ -414,10 +414,14 @@ public class AntiCaptchaProvider : ICaptchaProvider
 ```
 
 # Tested Sites
-- [hitmehard](https://uam.hitmehard.fun/HIT)
-- [hdmovie8](https://hdmovie8.com)
-- [japscan](https://www.japscan.to)
+- [uam.hitmehard.fun](https://uam.hitmehard.fun/HIT)
+- [hdmovie8.com](https://hdmovie8.com)
+- [japscan.to](https://www.japscan.to)
 - [spacetorrent.cloud](https://www.spacetorrent.cloud)
-- [codepen](https://codepen.io) (captcha challenges only - js challenges not allowed)
+- [codepen.io](https://codepen.io) (captcha challenges only - js challenges not allowed)
 - [temp-mail](https://temp-mail.org) (not always using cloudflare)
 - [hidemy.name](https://hidemy.name/en/proxy-list/)
+- [speed.cd](https://speed.cd)
+- [gktorrent.biz](https://www.gktorrent.biz/)
+- [humanweb.fr](https://www.humanweb.fr/)
+- [steamdb.info](https://steamdb.info/)
