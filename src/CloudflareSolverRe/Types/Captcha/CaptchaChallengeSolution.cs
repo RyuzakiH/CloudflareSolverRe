@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace CloudflareSolverRe.Types.Captcha
 {
@@ -9,23 +10,30 @@ namespace CloudflareSolverRe.Types.Captcha
     {
         public string ClearancePage { get; }
         public string RecaptchaResponse { get; }
-        public string S { get; }
+        public string R { get; }
+        public string Id { get; }
 
-        public string ClearanceUrl => !string.IsNullOrEmpty(S) ?
-            $"{ClearancePage}?s={Uri.EscapeDataString(S)}&g-recaptcha-response={Uri.EscapeDataString(RecaptchaResponse)}" :
-            $"{ClearancePage}?g-recaptcha-response={Uri.EscapeDataString(RecaptchaResponse)}";
+        public string ClearanceUrl => ClearancePage;
 
-        public CaptchaChallengeSolution(string clearancePage, string s, string recaptchaResponse)
+        public Dictionary<string, string> ClearanceBody => new Dictionary<string, string>
+        {
+            { "r", Uri.EscapeDataString(R) },
+            { "id", Uri.EscapeDataString(Id) },
+            { "g-recaptcha-response", Uri.EscapeDataString(RecaptchaResponse)}
+        };
+
+        public CaptchaChallengeSolution(string clearancePage, string s, string id, string recaptchaResponse)
         {
             ClearancePage = clearancePage;
-            S = s;
+            R = s;
+            Id = id;
             RecaptchaResponse = recaptchaResponse;
         }
 
         public CaptchaChallengeSolution(CaptchaChallenge challenge, string recaptchaResponse)
         {
             ClearancePage = $"{challenge.SiteUrl.Scheme}://{challenge.SiteUrl.Host}{challenge.Action}";
-            S = challenge.S;
+            R = challenge.R;
             RecaptchaResponse = recaptchaResponse;
         }
 

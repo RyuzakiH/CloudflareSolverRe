@@ -67,8 +67,9 @@ namespace CloudflareSolverRe.Solvers
 
         private async Task<SolveResult> SubmitCaptchaSolution(CaptchaChallengeSolution solution)
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, new Uri(solution.ClearanceUrl));
+            var request = new HttpRequestMessage(HttpMethod.Post, new Uri(solution.ClearanceUrl));
             request.Headers.Referrer = SiteUrl;
+            request.Content = new FormUrlEncodedContent(solution.ClearanceBody);
 
             var response = await HttpClient.SendAsync(request);
 

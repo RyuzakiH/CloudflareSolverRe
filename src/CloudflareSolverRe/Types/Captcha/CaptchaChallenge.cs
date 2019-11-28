@@ -7,10 +7,11 @@ namespace CloudflareSolverRe.Types.Captcha
 {
     public class CaptchaChallenge
     {
-        private static readonly Regex CaptchaFormRegex = new Regex(@"<form.+?action=""(?<action>\S+?)"".*?>.*?name=""s"" value=""(?<s>\S+)"".*?fallback\?\w+?=(?<siteKey>\S+)""", RegexOptions.Singleline/* | RegexOptions.Compiled*/);
+        private static readonly Regex CaptchaFormRegex = new Regex(@"<form.+?action=""(?<action>\S+?)"".*?>.*?name=""r"" value=""(?<r>[^""]*?)"".*?data-ray=""(?<dataRay>\S+)"".*?fallback\?\w+?=(?<siteKey>\S+)""", RegexOptions.Singleline/* | RegexOptions.Compiled*/);
 
         public string Action { get; set; }
-        public string S { get; set; }
+        public string R { get; set; }
+        public string DataRay { get; set; }
         public string SiteKey { get; set; }
         public Uri SiteUrl { get; set; }
 
@@ -21,7 +22,8 @@ namespace CloudflareSolverRe.Types.Captcha
             return new CaptchaChallenge
             {
                 Action = formMatch.Groups["action"].Value,
-                S = formMatch.Groups["s"].Value,
+                R = formMatch.Groups["r"].Value,
+                DataRay = formMatch.Groups["dataRay"].Value,
                 SiteKey = formMatch.Groups["siteKey"].Value,
                 SiteUrl = siteUrl
             };
