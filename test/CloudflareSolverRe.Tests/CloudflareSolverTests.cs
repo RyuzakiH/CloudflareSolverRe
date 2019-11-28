@@ -1,6 +1,7 @@
 ﻿using CloudflareSolverRe.CaptchaProviders;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -9,10 +10,10 @@ namespace CloudflareSolverRe.Tests
     [TestClass]
     public class CloudflareSolverTests
     {
-        private static readonly Uri uamhitmehardfunUri = new Uri("https://uam.hitmehard.fun/HIT");
+        private static readonly Uri soundparkUri = new Uri("https://sound-park.world/");
 
         [TestMethod]
-        public async Task SolveWebsiteChallenge_uamhitmehardfun()
+        public async Task SolveWebsiteChallenge_soundpark()
         {
             var cf = new CloudflareSolver
             {
@@ -23,17 +24,17 @@ namespace CloudflareSolverRe.Tests
             var handler = new HttpClientHandler();
             var client = new HttpClient(handler);
 
-            var result = await cf.Solve(client, handler, uamhitmehardfunUri);
+            var result = await cf.Solve(client, handler, soundparkUri);
 
             Assert.IsTrue(result.Success);
 
-            var content = await client.GetStringAsync(uamhitmehardfunUri);
+            HttpResponseMessage response = await client.GetAsync(soundparkUri);
 
-            Assert.AreEqual("Dstat.cc is the best", content);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
         }
 
         [TestMethod]
-        public async Task SolveWebsiteChallenge_uamhitmehardfun_WithAntiCaptcha()
+        public async Task SolveWebsiteChallenge_soundpark_WithAntiCaptcha()
         {
             if (Settings.AntiCaptchaApiKey.Equals("YOUR_API_KEY"))
                 return;
@@ -47,17 +48,17 @@ namespace CloudflareSolverRe.Tests
             var handler = new HttpClientHandler();
             var client = new HttpClient(handler);
 
-            var result = await cf.Solve(client, handler, uamhitmehardfunUri);
+            var result = await cf.Solve(client, handler, soundparkUri);
 
             Assert.IsTrue(result.Success);
 
-            var content = await client.GetStringAsync(uamhitmehardfunUri);
+            HttpResponseMessage response = await client.GetAsync(soundparkUri);
 
-            Assert.AreEqual("Dstat.cc is the best", content);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
         }
 
         [TestMethod]
-        public async Task SolveWebsiteChallenge_uamhitmehardfun_With2Captcha()
+        public async Task SolveWebsiteChallenge_soundpark_With2Captcha()
         {
             if (Settings.TwoCaptchaApiKey.Equals("YOUR_API_KEY"))
                 return;
@@ -71,13 +72,14 @@ namespace CloudflareSolverRe.Tests
             var handler = new HttpClientHandler();
             var client = new HttpClient(handler);
 
-            var result = await cf.Solve(client, handler, uamhitmehardfunUri);
+            var result = await cf.Solve(client, handler, soundparkUri);
 
             Assert.IsTrue(result.Success);
 
-            var content = await client.GetStringAsync(uamhitmehardfunUri);
+            HttpResponseMessage response = await client.GetAsync(soundparkUri);
 
-            Assert.AreEqual("Dstat.cc is the best", content);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
         }
+
     }
 }

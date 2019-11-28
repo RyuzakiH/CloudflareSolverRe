@@ -9,10 +9,10 @@ namespace CloudflareSolverRe.Tests
     [TestClass]
     public class IntegrationTests
     {
-        private static readonly Uri uamhitmehardfunUri = new Uri("https://uam.hitmehard.fun/HIT");
+        private static readonly Uri soundparkUri = new Uri("https://sound-park.world/");
 
         [TestMethod]
-        public async Task SolveWebsiteChallenge_uamhitmehardfun_WebClient()
+        public async Task SolveWebsiteChallenge_soundpark_WebClient()
         {
             var cf = new CloudflareSolver
             {
@@ -20,7 +20,7 @@ namespace CloudflareSolverRe.Tests
                 ClearanceDelay = 3000
             };
 
-            var result = await cf.Solve(uamhitmehardfunUri);
+            var result = await cf.Solve(soundparkUri);
 
             Assert.IsTrue(result.Success);
 
@@ -28,13 +28,13 @@ namespace CloudflareSolverRe.Tests
             client.Headers.Add(HttpRequestHeader.Cookie, result.Cookies.AsHeaderString());
             client.Headers.Add(HttpRequestHeader.UserAgent, result.UserAgent);
 
-            var content = await client.DownloadStringTaskAsync(uamhitmehardfunUri);
+            var content = await client.DownloadStringTaskAsync(soundparkUri);
 
-            Assert.AreEqual("Dstat.cc is the best", content);
+            Assert.IsTrue(content.Contains("Music Torrent Tracker"));
         }
 
         [TestMethod]
-        public async Task SolveWebsiteChallenge_uamhitmehardfun_HttpWebRequest()
+        public async Task SolveWebsiteChallenge_soundpark_HttpWebRequest()
         {
             var cf = new CloudflareSolver
             {
@@ -42,18 +42,17 @@ namespace CloudflareSolverRe.Tests
                 ClearanceDelay = 3000
             };
 
-            var result = await cf.Solve(uamhitmehardfunUri);
+            var result = await cf.Solve(soundparkUri);
 
             Assert.IsTrue(result.Success);
 
-            var request = (HttpWebRequest)WebRequest.Create(uamhitmehardfunUri);
+            var request = (HttpWebRequest)WebRequest.Create(soundparkUri);
             request.Headers.Add(HttpRequestHeader.Cookie, result.Cookies.AsHeaderString());
             request.Headers.Add(HttpRequestHeader.UserAgent, result.UserAgent);
 
             var response = (HttpWebResponse)await request.GetResponseAsync();
-            var content = await new StreamReader(response.GetResponseStream()).ReadToEndAsync();
 
-            Assert.AreEqual("Dstat.cc is the best", content);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
         }
     }
 }
