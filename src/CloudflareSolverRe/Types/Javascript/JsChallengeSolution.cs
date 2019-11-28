@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 
 namespace CloudflareSolverRe.Types.Javascript
@@ -11,18 +12,23 @@ namespace CloudflareSolverRe.Types.Javascript
         public string ClearancePage { get; }
         public string VerificationCode { get; }
         public string Pass { get; }
-        public string S { get; }
+        public string R { get; }
         public double Answer { get; }
 
-        // Using .ToString("R") to reduce answer rounding
-        public string ClearanceUrl => !(string.IsNullOrEmpty(S)) ?
-            $"{ClearancePage}?s={Uri.EscapeDataString(S)}&jschl_vc={VerificationCode}&pass={Pass}&jschl_answer={Answer.ToString("R", CultureInfo.InvariantCulture)}" :
-            $"{ClearancePage}?jschl_vc={VerificationCode}&pass={Pass}&jschl_answer={Answer.ToString("R", CultureInfo.InvariantCulture)}";
+        public string ClearanceUrl => ClearancePage;
 
-        public JsChallengeSolution(string clearancePage, string s, string verificationCode, string pass, double answer)
+        public Dictionary<string, string> ClearanceBody => new Dictionary<string, string>
+        {
+            { "r", Uri.EscapeDataString(R) },
+            { "jschl_vc", VerificationCode},
+            { "pass", Pass },
+            { "jschl_answer", Answer.ToString("R", CultureInfo.InvariantCulture) }
+        };
+
+        public JsChallengeSolution(string clearancePage, string r, string verificationCode, string pass, double answer)
         {
             ClearancePage = clearancePage;
-            S = s;
+            R = r;
             VerificationCode = verificationCode;
             Pass = pass;
             Answer = answer;
@@ -31,7 +37,7 @@ namespace CloudflareSolverRe.Types.Javascript
         public JsChallengeSolution(string clearancePage, JsForm form, double answer)
         {
             ClearancePage = clearancePage;
-            S = form.S;
+            R = form.R;
             VerificationCode = form.VerificationCode;
             Pass = form.Pass;
             Answer = answer;
@@ -40,7 +46,7 @@ namespace CloudflareSolverRe.Types.Javascript
         public JsChallengeSolution(Uri siteUrl, JsForm form, double answer)
         {
             ClearancePage = $"{siteUrl.Scheme}://{siteUrl.Host}{form.Action}";
-            S = form.S;
+            R = form.R;
             VerificationCode = form.VerificationCode;
             Pass = form.Pass;
             Answer = answer;
