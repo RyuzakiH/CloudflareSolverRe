@@ -61,7 +61,7 @@ namespace CloudflareSolverRe.Types.Javascript
                 },
                 Form = new JsForm
                 {
-                    Action = challengeMatch.Groups["action"].Value,
+                    Action = System.Net.WebUtility.HtmlDecode(challengeMatch.Groups["action"].Value),
                     R = challengeMatch.Groups["r"].Value,
                     VerificationCode = challengeMatch.Groups["jschl_vc"].Value,
                     Pass = challengeMatch.Groups["pass"].Value
