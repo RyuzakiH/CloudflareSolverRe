@@ -60,7 +60,7 @@ namespace CloudflareSolverRe.Solvers
 
             var solution = new JsChallengeSolution(SiteUrl, challenge.Form, jschl_answer);
 
-            await Task.Delay(ClearanceDelay <= 0 ? challenge.Script.Delay : ClearanceDelay);
+            await Task.Delay(ClearanceDelay <= 0 ? challenge.Delay : ClearanceDelay);
 
             return await SubmitJsSolution(solution);
         }

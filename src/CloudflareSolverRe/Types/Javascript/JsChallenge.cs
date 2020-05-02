@@ -1,64 +1,37 @@
-﻿using CloudflareSolverRe.Extensions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using System.Text.RegularExpressions;
+using Jint;
 
 namespace CloudflareSolverRe.Types.Javascript
 {
     public class JsChallenge
     {
-        private static readonly Regex JsChallengeRegex = new Regex(@"<script.*?>(?<script>.*?var s,t,o,p,b,r,e,a,k,i,n,g,\w, (?<className>\w+?)={""(?<propName>\w+?)"":(?<propValue>.*?)};.*?(?<calculations>\s*?\w+?\.\w+?[+\-*\/]=(?:(?<normal>(?:\+|\(|\)|\!|\[|\]|\/)+?;)|(?<charCode>(?:\+|\(|\)|\!|\[|\]|\/)+?\(function.*?}\(.*?\)\)\);)|(?<cfdn>function\(.\)\{var.*?;\s.*?;)))+.*?a\.value\s=\s\(\+\w+\.\w+(\s\+\s(?<addHostLength>t\.length))*?\)\.toFixed\((?<round>\d+)\);.*?},\s*(?<delay>\d+)\);.*?)<\/script>.*?<form.+?action=""(?<action>\S+?)"".*?>.*?name=""r"" value=""(?<r>\S+)"".*?name=""jschl_vc"" value=""(?<jschl_vc>[a-z0-9]{32})"".*?name=""pass"" value=""(?<pass>\S+?)"".*?</form>.*?(id=""cf-dn-\S+"">(?<cf_dn>.*?)</div>\s+<div.*?){0,1}\s+</div>", RegexOptions.Singleline/* | RegexOptions.Compiled*/);
-
-        public JsScript Script { get; set; }
-        public JsForm Form { get; set; }
-        public string Cfdn { get; set; }
+        private static readonly Regex JsChallengeRegex = new Regex(@"setTimeout\s*\([^{]*{(?<js_code>.+\.submit\s*\(\s*\)\s*;)\s*}\s*,\s*(?<delay>\d+)\s*\).*?<form.+?action=""(?<action>\S+?)"".*?>.*?name=""r"" value=""(?<r>\S+)"".*?value=""(?<jschl_vc>[a-z0-9]{32})"".*?name=""jschl_vc"".*?name=""pass"" value=""(?<pass>\S+?)"".*?</form>.*?id=""cf-dn-[^>]+>(?<cf_dn>.*?)</div>", RegexOptions.Singleline);
         public Uri SiteUrl { get; set; }
+        public string JsCode { get; set; }
+        public int Delay { get; set; }
+        public JsForm Form { get; set; }
+        public string CfDn { get; set; }
+        private string JschlAnswer { get; set; }
+        private static bool _debug;
 
-
-        public double Solve() =>
-            Math.Round(Script.Calculations.Aggregate(0d, ApplyCalculation), Script.Round) + (Script.IsHostLength ? SiteUrl.Host.Length : 0);
-
-        private static double ApplyCalculation(double number, IJsCalculation calculation)
+        public static JsChallenge Parse(string html, Uri siteUrl, bool debug)
         {
-            switch (calculation.Operator)
-            {
-                case "":
-                    return calculation.Result;
-                case "+":
-                    return number + calculation.Result;
-                case "-":
-                    return number - calculation.Result;
-                case "*":
-                    return number * calculation.Result;
-                case "/":
-                    return number / calculation.Result;
-                default:
-                    throw new ArgumentOutOfRangeException($"Unknown operator: {calculation.Operator}");
-            }
+            _debug = debug;
+            return Parse(html, siteUrl);
         }
-
 
         public static JsChallenge Parse(string html, Uri siteUrl)
         {
             var challengeMatch = JsChallengeRegex.Match(html);
-
             if (!challengeMatch.Success)
-                throw new Exception("Error parsing JS challenge html");
+                throw new Exception("Error parsing JS challenge HTML");
 
             return new JsChallenge
             {
-                Script = new JsScript
-                {
-                    ClassName = challengeMatch.Groups["className"].Value,
-                    PropertyName = challengeMatch.Groups["propName"].Value,
-                    PropertyValue = challengeMatch.Groups["propValue"].Value,
-                    Calculations = GetCalculations(challengeMatch, siteUrl)
-                        .Prepend(new NormalCalculation($"{challengeMatch.Groups["className"].Value}.{challengeMatch.Groups["propName"].Value}={challengeMatch.Groups["propValue"].Value};")),
-                    IsHostLength = challengeMatch.Groups["addHostLength"].Success,
-                    Round = int.Parse(challengeMatch.Groups["round"].Value),
-                    Delay = int.Parse(challengeMatch.Groups["delay"].Value),
-                },
+                SiteUrl = siteUrl,
+                JsCode = challengeMatch.Groups["js_code"].Value,
+                Delay = int.Parse(challengeMatch.Groups["delay"].Value),
                 Form = new JsForm
                 {
                     Action = System.Net.WebUtility.HtmlDecode(challengeMatch.Groups["action"].Value),
@@ -66,47 +39,126 @@ namespace CloudflareSolverRe.Types.Javascript
                     VerificationCode = challengeMatch.Groups["jschl_vc"].Value,
                     Pass = challengeMatch.Groups["pass"].Value
                 },
-                Cfdn = challengeMatch.Groups["cf_dn"].Value,
-                SiteUrl = siteUrl
+                CfDn = challengeMatch.Groups["cf_dn"].Value
             };
         }
 
-        private static IEnumerable<IJsCalculation> GetCalculations(Match challengeMatch, Uri siteUrl)
+        public string Solve()
         {
-            var normalCaptures = challengeMatch.Groups["normal"].Captures.Cast<Capture>();
-            var charCodeCaptures = challengeMatch.Groups["charCode"].Captures.Cast<Capture>();
-            var cfdn = challengeMatch.Groups["cf_dn"].Value;
+            var engine = new Engine().SetValue("invokeCSharp", this);
 
-            return challengeMatch.Groups["calculations"].Captures.Cast<Capture>()
-                .Select(capture => GetCalculation(capture, normalCaptures, charCodeCaptures, cfdn, siteUrl));
+            // Jint only implements the Javascript language, we have to implement / mock the DOM methods
+            // and some unimplemented methods like String.italics
+            engine.Execute(@"
+                invokeCSharp.JsCallLog(""Example debug message from Javascript"");
+
+                document = {
+                    getElementById: function(id) {
+                        var fakeObj = {
+                            submit: function () {}
+                        }
+                        Object.defineProperty(fakeObj, ""innerHTML"", {
+                            get: function () { return invokeCSharp.JsCallInnerHtml(id); }
+                        });
+                        Object.defineProperty(fakeObj, ""value"", {
+                            get: function () { return invokeCSharp.JsCallGetAttribute(id, ""value""); },
+                            set: function(value) { invokeCSharp.JsCallSetAttribute(id, ""value"", value); }
+                        });
+                        Object.defineProperty(fakeObj, ""action"", {
+                            get: function () { return invokeCSharp.JsCallGetAttribute(id, ""action""); },
+                            set: function(value) { invokeCSharp.JsCallSetAttribute(id, ""action"", value); }
+                        });
+                        return fakeObj;
+                    },
+                    createElement: function(element) {
+                        return {
+                            innerHTML: """",
+                            firstChild: {
+                                href:  invokeCSharp.JsCallGetHref()
+                            }
+                        }
+                    }
+                };
+
+                location = {
+                    hash: invokeCSharp.JsCallGetHash()
+                }
+
+                String.prototype.italics = function() {
+                    return ""<i>"" + this + ""</i>"";
+                };" + JsCode);
+
+            return JschlAnswer;
         }
 
-        private static IJsCalculation GetCalculation(Capture capture, IEnumerable<Capture> normalCaptures, IEnumerable<Capture> charCodeCaptures, string cfdn, Uri siteUrl)
+        // This method is used to print traces from Javascript code
+        // ReSharper disable once UnusedMember.Global
+        public static void JsCallLog(string message)
         {
-            var type = GetCalculationType(capture, normalCaptures, charCodeCaptures);
+            DebugLog($"JsCallLog message: {message}");
+        }
 
-            if (type.Equals(CalculationType.Normal))
+        // ReSharper disable once UnusedMember.Global
+        public string JsCallGetHref()
+        {
+            // currently only used to get the base url (js: t.firstChild.href)
+            var href = $"{SiteUrl.Scheme}://{SiteUrl.Host}/";
+            DebugLog($"JsCallGetHref return: {href}");
+            return href;
+        }
+
+        // ReSharper disable once UnusedMember.Global
+        public string JsCallGetHash()
+        {
+            // currently only used to get url hash (js: f.action += location.hash)
+            var hash = SiteUrl.Fragment;
+            DebugLog($"JsCallGetHash return: {hash}");
+            return hash;
+        }
+
+        // ReSharper disable once UnusedMember.Global
+        public string JsCallInnerHtml(string id)
+        {
+            // currently only used to get the value of <div ... id="cf-dn- ...
+            DebugLog($"JsCallInnerHtml id: {id}");
+            return CfDn;
+        }
+
+        // ReSharper disable once UnusedMember.Global
+        public string JsCallGetAttribute(string id, string attr)
+        {
+            // currently only used in form.action (js: f.action += location.hash;)
+            DebugLog($"JsCallGetAttribute id: {id} attr: {attr}");
+            return Form.Action;
+        }
+
+        // ReSharper disable once UnusedMember.Global
+        public void JsCallSetAttribute(string id, string attr, string value)
+        {
+            // currently only used in:
+            // <input ... name="jschl_answer" (js: a.value = ...)
+            // form.action (js: f.action += location.hash;)
+            DebugLog($"JsCallSetAttribute id: {id} attr: {attr} value: {value}");
+            switch (attr)
             {
-                return new NormalCalculation(capture.Value);
-            }
-            else if (type.Equals(CalculationType.CharCode))
-            {
-                return new CharCodeCalculation(capture.Value, siteUrl);
-            }
-            else
-            {
-                return new CfdnCalculation(capture.Value, cfdn);
+                case "value":
+                    JschlAnswer = value;
+                    break;
+                case "action":
+                    Form.Action = value;
+                    break;
+                default:
+                    DebugLog("JsCallSetAttribute unexpected attr");
+                    break;
             }
         }
 
-        private static CalculationType GetCalculationType(Capture capture, IEnumerable<Capture> normalCaptures, IEnumerable<Capture> charCodeCaptures)
+        private static void DebugLog(string message)
         {
-            return normalCaptures.Any(Equals(capture)) ? CalculationType.Normal :
-                (charCodeCaptures.Any(Equals(capture)) ?
-                CalculationType.CharCode : CalculationType.Cfdn);
+            if (_debug)
+            {
+                Console.WriteLine($"JsChallenge DEBUG {message}");
+            }
         }
-
-        private static Func<Capture, bool> Equals(Capture capture) => cap => capture.Value.Contains(cap.Value);
-
     }
 }
