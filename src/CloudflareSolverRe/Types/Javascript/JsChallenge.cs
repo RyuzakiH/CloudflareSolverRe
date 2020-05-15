@@ -6,14 +6,14 @@ namespace CloudflareSolverRe.Types.Javascript
 {
     public class JsChallenge
     {
-        private static readonly Regex JsChallengeRegex = new Regex(@"setTimeout\s*\([^{]*{(?<js_code>.+\.submit\s*\(\s*\)\s*;)\s*}\s*,\s*(?<delay>\d+)\s*\).*?<form.+?action=""(?<action>\S+?)"".*?>.*?name=""r"" value=""(?<r>\S+)"".*?value=""(?<jschl_vc>[a-z0-9]{32})"".*?name=""jschl_vc"".*?name=""pass"" value=""(?<pass>\S+?)"".*?</form>.*?id=""cf-dn-[^>]+>(?<cf_dn>.*?)</div>", RegexOptions.Singleline);
+        private static readonly Regex JsCodeRegex = new Regex(@"setTimeout\s*\([^{]*{(?<js_code>.+\.submit\s*\(\s*\)\s*;)\s*}\s*,\s*(?<delay>\d+)\s*\)", RegexOptions.Singleline);
         public Uri SiteUrl { get; set; }
         public string JsCode { get; set; }
         public int Delay { get; set; }
         public JsForm Form { get; set; }
-        public string CfDn { get; set; }
         private string JschlAnswer { get; set; }
         private static bool _debug;
+        private static string _html;
 
         public static JsChallenge Parse(string html, Uri siteUrl, bool debug)
         {
@@ -23,23 +23,26 @@ namespace CloudflareSolverRe.Types.Javascript
 
         public static JsChallenge Parse(string html, Uri siteUrl)
         {
-            var challengeMatch = JsChallengeRegex.Match(html);
-            if (!challengeMatch.Success)
+            // remove html comments
+            _html = Regex.Replace(html, "<!--.*?-->", "", RegexOptions.Singleline);
+
+            // parse challenge
+            var jsCodeMatch = JsCodeRegex.Match(_html);
+            if (!jsCodeMatch.Success)
                 throw new Exception("Error parsing JS challenge HTML");
 
             return new JsChallenge
             {
                 SiteUrl = siteUrl,
-                JsCode = challengeMatch.Groups["js_code"].Value,
-                Delay = int.Parse(challengeMatch.Groups["delay"].Value),
+                JsCode = jsCodeMatch.Groups["js_code"].Value,
+                Delay = int.Parse(jsCodeMatch.Groups["delay"].Value),
                 Form = new JsForm
                 {
-                    Action = System.Net.WebUtility.HtmlDecode(challengeMatch.Groups["action"].Value),
-                    R = challengeMatch.Groups["r"].Value,
-                    VerificationCode = challengeMatch.Groups["jschl_vc"].Value,
-                    Pass = challengeMatch.Groups["pass"].Value
-                },
-                CfDn = challengeMatch.Groups["cf_dn"].Value
+                    Action = System.Net.WebUtility.HtmlDecode(GetFieldAttrByAttr("id", "challenge-form", "action")),
+                    R = GetFieldAttrByAttr("name", "r", "value"),
+                    VerificationCode =  GetFieldAttrByAttr("name", "jschl_vc", "value"),
+                    Pass =  GetFieldAttrByAttr("name", "pass", "value")
+                }
             };
         }
 
@@ -50,7 +53,7 @@ namespace CloudflareSolverRe.Types.Javascript
             // Jint only implements the Javascript language, we have to implement / mock the DOM methods
             // and some unimplemented methods like String.italics
             engine.Execute(@"
-                invokeCSharp.JsCallLog(""Example debug message from Javascript"");
+                //invokeCSharp.JsCallLog(""Example debug message from Javascript"");
 
                 document = {
                     getElementById: function(id) {
@@ -119,9 +122,9 @@ namespace CloudflareSolverRe.Types.Javascript
         // ReSharper disable once UnusedMember.Global
         public string JsCallInnerHtml(string id)
         {
-            // currently only used to get the value of <div ... id="cf-dn- ...
-            DebugLog($"JsCallInnerHtml id: {id}");
-            return CfDn;
+            var innerHtml = GetInnerHtmlById(id);
+            DebugLog($"JsCallInnerHtml id: {id} return: {innerHtml}");
+            return innerHtml;
         }
 
         // ReSharper disable once UnusedMember.Global
@@ -151,6 +154,40 @@ namespace CloudflareSolverRe.Types.Javascript
                     DebugLog("JsCallSetAttribute unexpected attr");
                     break;
             }
+        }
+
+        private static string GetInnerHtmlById(string id)
+        {
+            var regEx = new Regex($@"<[^>]*id\s*=\s*""{id}""[^>]*>(?<innerHTML>\S+?)<\s*/", RegexOptions.Singleline);
+            var match = regEx.Match(_html);
+            if (!match.Success)
+            {
+                throw new Exception($"GetInnerHtmlById not found! id: {id}");
+            }
+            var innerHtml = match.Groups["innerHTML"].Value;
+            DebugLog($"GetInnerHtmlById id: {id} return: {innerHtml}");
+            return innerHtml;
+        }
+
+        private static string GetFieldAttrByAttr(string sAttrId, string sAttrValue, string returnAttr)
+        {
+            var regEx = new Regex($@"<[^>]*{sAttrId}\s*=\s*""{sAttrValue}""[^>]*>", RegexOptions.Singleline);
+            var match = regEx.Match(_html);
+            if (!match.Success)
+            {
+                throw new Exception($"GetInputValueByName element not found! {sAttrId}: {sAttrValue}");
+            }
+            var fHtml = match.Groups[0].Value;
+
+            var regEx2 = new Regex($@"[^A-Za-z0-9]{returnAttr}\s*=\s*""([^""]*)""", RegexOptions.Singleline);
+            var match2 = regEx2.Match(fHtml);
+            if (!match2.Success)
+            {
+                throw new Exception($"GetInputValueByName attribute not found! returnAttr: {returnAttr} fHtml: {fHtml}");
+            }
+            var res = match2.Groups[1].Value;
+            DebugLog($"GetFieldAttrByAttr {sAttrId}={sAttrValue} returnAttr: {returnAttr} return: {res}");
+            return res;
         }
 
         private static void DebugLog(string message)
