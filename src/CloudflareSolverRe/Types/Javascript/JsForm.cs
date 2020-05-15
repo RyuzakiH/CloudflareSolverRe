@@ -1,6 +1,6 @@
 ﻿namespace CloudflareSolverRe.Types.Javascript
 {
-    public struct JsForm
+    public class JsForm
     {
         public string Action { get; set; }
         public string R { get; set; }

@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using CloudflareSolverRe.Types.Javascript;
+using System;
+using System.Threading.Tasks;
 
 namespace CloudflareSolverRe.Sample
 {
@@ -6,19 +8,23 @@ namespace CloudflareSolverRe.Sample
     {
         static void Main(string[] args)
         {
+            //JsChallenge.Decode("+((!+[]+(!![])+!![]+!![]+[]))");
+            //Console.Read();
+            //return;
+
             ClearanceHandlerSample.Sample().Wait();
 
             Task.Delay(5000).Wait();
 
-            CloudflareSolverSample.Sample().Wait();
+            //CloudflareSolverSample.Sample().Wait();
 
-            Task.Delay(5000).Wait();
+            //Task.Delay(5000).Wait();
 
-            IntegrationSample.WebClientSample().Wait();
+            //IntegrationSample.WebClientSample().Wait();
 
-            Task.Delay(5000).Wait();
+            //Task.Delay(5000).Wait();
 
-            IntegrationSample.HttpWebRequestSample().Wait();
+            //IntegrationSample.HttpWebRequestSample().Wait();
         }
     }
 }

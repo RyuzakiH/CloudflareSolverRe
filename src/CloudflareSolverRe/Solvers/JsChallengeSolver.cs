@@ -54,13 +54,24 @@ namespace CloudflareSolverRe.Solvers
 
         private async Task<SolveResult> SolveChallenge(string html)
         {
-            var challenge = JsChallenge.Parse(html, SiteUrl);
+            JsChallenge challenge;
+            try
+            {
+                challenge = JsChallenge.Parse(html, SiteUrl);
+            }
+            catch (Exception)
+            {
+                // The exception can be caused by Im Under Attack Mode or a new challenge
+                // If we throw the exception there are no more retries. In IUAM is better to wait a bit and retry.
+                await Task.Delay(ClearanceDelay);
+                return new SolveResult(false, LayerJavaScript, Errors.SomethingWrongHappened, DetectResult);
+            }
 
-            var jschl_answer = challenge.Solve();
+            var jschlAnswer = challenge.Solve();
 
-            var solution = new JsChallengeSolution(SiteUrl, challenge.Form, jschl_answer);
+            var solution = new JsChallengeSolution(SiteUrl, challenge.Form, jschlAnswer);
 
-            await Task.Delay(ClearanceDelay <= 0 ? challenge.Script.Delay : ClearanceDelay);
+            await Task.Delay(ClearanceDelay <= 0 ? challenge.Delay : ClearanceDelay);
 
             return await SubmitJsSolution(solution);
         }

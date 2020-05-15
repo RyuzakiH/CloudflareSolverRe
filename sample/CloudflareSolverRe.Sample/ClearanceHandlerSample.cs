@@ -7,7 +7,7 @@ namespace CloudflareSolverRe.Sample
 {
     public class ClearanceHandlerSample
     {
-        private static readonly Uri target = new Uri("https://uam.hitmehard.fun/HIT");
+        private static readonly Uri target = new Uri("https://www8.series9.to/film/a-ballerinas-tale-mov");
 
         public async static Task Sample()
         {
