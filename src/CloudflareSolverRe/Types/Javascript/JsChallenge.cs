@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 using Jint;
 
@@ -6,7 +7,7 @@ namespace CloudflareSolverRe.Types.Javascript
 {
     public class JsChallenge
     {
-        private static readonly Regex JsChallengeRegex = new Regex(@"setTimeout\s*\([^{]*{(?<js_code>.+\.submit\s*\(\s*\)\s*;)\s*}\s*,\s*(?<delay>\d+)\s*\).*?<form.+?action=""(?<action>\S+?)"".*?>.*?name=""r"" value=""(?<r>\S+)"".*?value=""(?<jschl_vc>[a-z0-9]{32})"".*?name=""jschl_vc"".*?name=""pass"" value=""(?<pass>\S+?)"".*?</form>.*?id=""cf-dn-[^>]+>(?<cf_dn>.*?)</div>", RegexOptions.Singleline);
+        private static readonly Regex JsChallengeRegex = new Regex(@"setTimeout\s*\([^{]*{(?<js_code>.+\.submit\s*\(\s*\)\s*;)\s*}\s*,\s*(?<delay>\d+)\s*\).*?<form.+?action=""(?<action>\S+?)"".*?>.*?name=""r"" value=""(?<r>\S+)"".*?value=""(?<jschl_vc>[a-z0-9]{32})"".*?name=""jschl_vc"".*?name=""pass"" value=""(?<pass>\S+?)"".*?</form>.*?(?<cf_dn><div id=""[^>]+>.*?)<div id=""trk_jschal_nojs""", RegexOptions.Singleline);
         public Uri SiteUrl { get; set; }
         public string JsCode { get; set; }
         public int Delay { get; set; }
@@ -21,13 +22,24 @@ namespace CloudflareSolverRe.Types.Javascript
             return Parse(html, siteUrl);
         }
 
+        public static string JsFuckDecode(string jsFuck)
+        {
+            Engine engine = new Engine();
+            var js = $"var result = {jsFuck}";
+            string result = engine.Execute(js).GetValue("result").ToString();
+            Debug.WriteLine($"Decode '{jsFuck}' => '{result}'");
+            return result;
+        }
+
         public static JsChallenge Parse(string html, Uri siteUrl)
         {
+            //Decode("+((!+[]+(!![])+!![]+!![]+[]))");
+
             var challengeMatch = JsChallengeRegex.Match(html);
             if (!challengeMatch.Success)
                 throw new Exception("Error parsing JS challenge HTML");
 
-            return new JsChallenge
+            var values = new JsChallenge
             {
                 SiteUrl = siteUrl,
                 JsCode = challengeMatch.Groups["js_code"].Value,
@@ -41,6 +53,20 @@ namespace CloudflareSolverRe.Types.Javascript
                 },
                 CfDn = challengeMatch.Groups["cf_dn"].Value
             };
+
+            var k = GetKValue(values.JsCode);
+            values.CfDn = Regex.Match(values.CfDn, $"(?<=id=\"{k}\">)[^<]+").Value;
+
+            return values;
+        }
+
+        static string GetKValue(string jsCode)
+        {
+            var k = Regex.Match(jsCode, "; ?k ?= ?'(?<k>[^']+)").Groups["k"].Value;
+            var kPlus = Regex.Match(jsCode, "(?<=k\\+=)[^;]+").Value;
+            var kPlusValue = JsFuckDecode(kPlus);
+            k += kPlusValue;
+            return k;
         }
 
         public string Solve()
@@ -88,6 +114,7 @@ namespace CloudflareSolverRe.Types.Javascript
                     return ""<i>"" + this + ""</i>"";
                 };" + JsCode);
 
+            System.Diagnostics.Debug.WriteLine($"JschlAnswer: {JschlAnswer}");
             return JschlAnswer;
         }
 
