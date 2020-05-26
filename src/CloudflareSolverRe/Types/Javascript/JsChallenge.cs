@@ -53,43 +53,50 @@ namespace CloudflareSolverRe.Types.Javascript
             // Jint only implements the Javascript language, we have to implement / mock the DOM methods
             // and some unimplemented methods like String.italics
             engine.Execute(@"
-                //invokeCSharp.JsCallLog(""Example debug message from Javascript"");
 
-                document = {
-                    getElementById: function(id) {
-                        var fakeObj = {
-                            submit: function () {}
-                        }
-                        Object.defineProperty(fakeObj, ""innerHTML"", {
-                            get: function () { return invokeCSharp.JsCallInnerHtml(id); }
-                        });
-                        Object.defineProperty(fakeObj, ""value"", {
-                            get: function () { return invokeCSharp.JsCallGetAttribute(id, ""value""); },
-                            set: function(value) { invokeCSharp.JsCallSetAttribute(id, ""value"", value); }
-                        });
-                        Object.defineProperty(fakeObj, ""action"", {
-                            get: function () { return invokeCSharp.JsCallGetAttribute(id, ""action""); },
-                            set: function(value) { invokeCSharp.JsCallSetAttribute(id, ""action"", value); }
-                        });
-                        return fakeObj;
-                    },
-                    createElement: function(element) {
-                        return {
-                            innerHTML: """",
-                            firstChild: {
-                                href:  invokeCSharp.JsCallGetHref()
-                            }
-                        }
-                    }
-                };
+    //invokeCSharp.JsCallLog(""Example debug message from Javascript"");
 
-                location = {
-                    hash: invokeCSharp.JsCallGetHash()
+    document = {
+        getElementById: function(id) {
+            var fakeObj = {
+                submit: function () {}
+            }
+            Object.defineProperty(fakeObj, ""innerHTML"", {
+                get: function () { return invokeCSharp.JsCallInnerHtml(id); }
+            });
+            Object.defineProperty(fakeObj, ""value"", {
+                get: function () { return invokeCSharp.JsCallGetAttribute(id, ""value""); },
+                set: function(value) { invokeCSharp.JsCallSetAttribute(id, ""value"", value); }
+            });
+            Object.defineProperty(fakeObj, ""action"", {
+                get: function () { return invokeCSharp.JsCallGetAttribute(id, ""action""); },
+                set: function(value) { invokeCSharp.JsCallSetAttribute(id, ""action"", value); }
+            });
+            return fakeObj;
+        },
+        createElement: function(element) {
+            return {
+                innerHTML: """",
+                firstChild: {
+                    href:  invokeCSharp.JsCallGetHref()
                 }
+            }
+        }
+    };
 
-                String.prototype.italics = function() {
-                    return ""<i>"" + this + ""</i>"";
-                };" + JsCode);
+    location = {
+        hash: invokeCSharp.JsCallGetHash()
+    }
+
+    setInterval = function() {
+        return;
+    };
+
+    String.prototype.italics = function() {
+        return ""<i>"" + this + ""</i>"";
+    };
+
+    (function() { " + JsCode + " }())");
 
             return JschlAnswer;
         }
