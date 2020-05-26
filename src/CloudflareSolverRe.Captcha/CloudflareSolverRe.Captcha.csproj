@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.1</TargetFramework>
+    <TargetFramework>netstandard1.3</TargetFramework>
     <PackageId>CloudflareSolverRe.Captcha</PackageId>
-    <Authors>Zaczero, RyuzakiH</Authors>    
+    <Authors>Zaczero, RyuzakiH, Ngosang</Authors>    
     <PackageLicenseUrl>https://github.com/RyuzakiH/CloudflareSolverRe/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/RyuzakiH/CloudflareSolverRe</PackageProjectUrl>
     <PackageTags>cloudflare, solver, bypass, protection, solving, library, cloudflaresolver, delegatinghandler, recaptcha, captcha, javascript, challenge, utilities</PackageTags>
     <Description>Extends CloudflareSolverRe, contains captcha providers (2Captcha, AntiCaptcha) that helps solving cloudflare captcha challenge.</Description>
-    <Version>1.0.6</Version>
+    <Version>1.0.7</Version>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <RepositoryUrl>https://github.com/RyuzakiH/CloudflareSolverRe</RepositoryUrl>
   </PropertyGroup>

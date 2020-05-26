@@ -16,4 +16,10 @@
     <ProjectReference Include="..\..\src\CloudflareSolverRe.Captcha\CloudflareSolverRe.Captcha.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="resources\js_challenge.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 
 namespace CloudflareSolverRe.Types.Javascript
 {
@@ -13,7 +12,7 @@ namespace CloudflareSolverRe.Types.Javascript
         public string VerificationCode { get; }
         public string Pass { get; }
         public string R { get; }
-        public double Answer { get; }
+        public string Answer { get; }
 
         public string ClearanceUrl => ClearancePage;
 
@@ -22,10 +21,10 @@ namespace CloudflareSolverRe.Types.Javascript
             { "r", Uri.EscapeDataString(R) },
             { "jschl_vc", VerificationCode},
             { "pass", Pass },
-            { "jschl_answer", Answer.ToString("R", CultureInfo.InvariantCulture) }
+            { "jschl_answer", Answer }
         };
 
-        public JsChallengeSolution(string clearancePage, string r, string verificationCode, string pass, double answer)
+        public JsChallengeSolution(string clearancePage, string r, string verificationCode, string pass, string answer)
         {
             ClearancePage = clearancePage;
             R = r;
@@ -34,7 +33,7 @@ namespace CloudflareSolverRe.Types.Javascript
             Answer = answer;
         }
 
-        public JsChallengeSolution(string clearancePage, JsForm form, double answer)
+        public JsChallengeSolution(string clearancePage, JsForm form, string answer)
         {
             ClearancePage = clearancePage;
             R = form.R;
@@ -43,7 +42,7 @@ namespace CloudflareSolverRe.Types.Javascript
             Answer = answer;
         }
 
-        public JsChallengeSolution(Uri siteUrl, JsForm form, double answer)
+        public JsChallengeSolution(Uri siteUrl, JsForm form, string answer)
         {
             ClearancePage = $"{siteUrl.Scheme}://{siteUrl.Host}{form.Action}";
             R = form.R;
@@ -62,6 +61,5 @@ namespace CloudflareSolverRe.Types.Javascript
         public bool Equals(JsChallengeSolution other) => other != null && other.ClearanceUrl == ClearanceUrl;
 
         public override int GetHashCode() => ClearanceUrl.GetHashCode();
-
     }
 }
