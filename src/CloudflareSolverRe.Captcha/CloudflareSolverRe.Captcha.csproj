@@ -16,6 +16,7 @@
   <ItemGroup>
     <PackageReference Include="2CaptchaAPI" Version="1.4.0" />
     <PackageReference Include="AntiCaptchaAPI" Version="1.1.0" />
+    <PackageReference Include="CapMonsterCloud" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>
