@@ -1,4 +1,4 @@
-﻿using _2Captcha;
+﻿using _2CaptchaAPI;
 using CloudflareSolverRe.Types.Captcha;
 using System.Threading.Tasks;
 
@@ -8,9 +8,9 @@ namespace CloudflareSolverRe.CaptchaProviders
     {
         public string Name { get; } = "2Captcha";
 
-        private readonly TwoCaptcha twoCaptcha;
+        private readonly _2Captcha twoCaptcha;
 
-        public TwoCaptchaProvider(string apiKey) => twoCaptcha = new TwoCaptcha(apiKey);
+        public TwoCaptchaProvider(string apiKey) => twoCaptcha = new _2Captcha(apiKey);
 
         public async Task<CaptchaSolveResult> SolveCaptcha(string siteKey, string webUrl)
         {

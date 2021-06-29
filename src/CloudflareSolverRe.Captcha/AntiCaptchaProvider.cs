@@ -1,4 +1,4 @@
-﻿using _AntiCaptcha;
+﻿using AntiCaptchaAPI;
 using CloudflareSolverRe.Types.Captcha;
 using System.Threading.Tasks;
 
