@@ -27,12 +27,12 @@ namespace CloudflareSolverRe.Types.Javascript
         public static string EncodeNumber(string number) =>
             $@"+({string.Join("+", Enumerable.Range(1, number.Length - 1)
                 .Select(i => EncodeDigit(int.Parse(number[i].ToString())))
-                .Prepend(EncodeDigit(int.Parse(number[0].ToString()), true)))})";
+                .eePrepend(EncodeDigit(int.Parse(number[0].ToString()), true)))})";
 
         public static string EncodeNumber(int number) =>
             $@"+({string.Join("+", Enumerable.Range(1, number.ToString().Length - 1)
                 .Select(i => EncodeDigit(int.Parse(number.ToString()[i].ToString())))
-                .Prepend(EncodeDigit(int.Parse(number.ToString()[0].ToString()), true)))})";
+                .eePrepend(EncodeDigit(int.Parse(number.ToString()[0].ToString()), true)))})";
 
         private static string EncodeDigit(int digit, bool stringResult = false)
         {
@@ -41,9 +41,9 @@ namespace CloudflareSolverRe.Types.Javascript
             else if (digit == 1)
                 return $"(+!![]{(stringResult ? "+[]" : "")})";
 
-            var encoded = Enumerable.Range(0, digit - 1).Select(d => "!![]").Prepend("!+[]");
+            var encoded = Enumerable.Range(0, digit - 1).Select(d => "!![]").eePrepend("!+[]");
 
-            return $"({string.Join("+", stringResult ? encoded.Append("[]") : encoded)})";
+            return $"({string.Join("+", stringResult ? encoded.eeAppend("[]") : encoded)})";
         }
 
 

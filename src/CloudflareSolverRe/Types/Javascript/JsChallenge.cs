@@ -54,7 +54,7 @@ namespace CloudflareSolverRe.Types.Javascript
                     PropertyName = challengeMatch.Groups["propName"].Value,
                     PropertyValue = challengeMatch.Groups["propValue"].Value,
                     Calculations = GetCalculations(challengeMatch, siteUrl)
-                        .Prepend(new NormalCalculation($"{challengeMatch.Groups["className"].Value}.{challengeMatch.Groups["propName"].Value}={challengeMatch.Groups["propValue"].Value};")),
+                        .eePrepend(new NormalCalculation($"{challengeMatch.Groups["className"].Value}.{challengeMatch.Groups["propName"].Value}={challengeMatch.Groups["propValue"].Value};")),
                     IsHostLength = challengeMatch.Groups["addHostLength"].Success,
                     Round = int.Parse(challengeMatch.Groups["round"].Value),
                     Delay = int.Parse(challengeMatch.Groups["delay"].Value),

@@ -1,25 +1,35 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.1</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <PackageId>CloudflareSolverRe.Captcha</PackageId>
     <Authors>Zaczero, RyuzakiH</Authors>    
-    <PackageLicenseUrl>https://github.com/RyuzakiH/CloudflareSolverRe/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/RyuzakiH/CloudflareSolverRe</PackageProjectUrl>
     <PackageTags>cloudflare, solver, bypass, protection, solving, library, cloudflaresolver, delegatinghandler, recaptcha, captcha, javascript, challenge, utilities</PackageTags>
     <Description>Extends CloudflareSolverRe, contains captcha providers (2Captcha, AntiCaptcha) that helps solving cloudflare captcha challenge.</Description>
-    <Version>1.0.6</Version>
+    <Version>1.0.8</Version>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <RepositoryUrl>https://github.com/RyuzakiH/CloudflareSolverRe</RepositoryUrl>
+    <AssemblyVersion>1.0.10.0</AssemblyVersion>
+    <FileVersion>1.0.10.0</FileVersion>
+    <PackageLicenseUrl />
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="2CaptchaAPI" Version="1.4.0" />
-    <PackageReference Include="AntiCaptchaAPI" Version="1.1.0" />
+    <PackageReference Include="2CaptchaAPI" Version="1.10.0" />
+    <PackageReference Include="AntiCaptchaAPI" Version="1.4.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\CloudflareSolverRe\CloudflareSolverRe.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
